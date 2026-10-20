@@ -187,11 +187,13 @@ function quickList(){
 }
 function roast(s, st, k){
   const dow = parseKey(k).getDay(), isToday = k === TODAY();
-  if (!s.nMeals && !s.nW && !s.water){
+  if (!s.nMeals && !s.nW && !s.water && !s.teh){
     if (dow === 6) return 'שבת. לא רושמים כלום. אבל הכרס זוכרת הכל.';
     if (dow === 5) return 'ערב שבת. הטשולנט כבר על הפלטה, והוא יודע מה עשית בשבוע שעבר.';
     return isToday ? 'בוקר טוב מעלקה. השלייקס כבר מתוחות. יום חדש להקל עליהן.' : 'יום ריק ביומן. או שהיה צום, או שהיה קידוש ושכחנו לרשום.';
   }
+  if (s.teh >= 150) return 'ספר תהילים שלם! נשרפו כ־' + fmt(s.tehBurn) + ' קק״ל. בערך חצי קוגל. אשריך.';
+  if (s.teh && !s.nW && s.kcal > st.kcalGoal) return `${s.teh} פרקי תהילים לא מכסים קוגל, מעלקה. בדקנו.`;
   if (s.kcal > st.kcalGoal + 400) return 'זה לא היה עוד קיגל אחד. זה היה עוד קיגל אחד, הרבה פעמים.';
   if (s.kcal > st.kcalGoal) return 'עברת את יעד הקלוריות. השלייקס הגישו תלונה לוועד הבית.';
   if (s.km >= 5) return `${fmt(s.km,1)} ק״מ ריצה. בשטיבל עוד מדברים על זה.`;
@@ -214,8 +216,13 @@ const bodyWeight = k => (latest('weight',k)?.v) || S.settings.weightStart || 80;
 const burned = (w,k) => Math.round((WORKOUTS[w.type]?.met || 5) * bodyWeight(k) * (n0(w.min)/60));
 const sums = k => { const d = S.days[k] || {meals:[],workouts:[],water:0};
   return { kcal:d.meals.reduce((a,m)=>a+n0(m.kcal),0), protein:d.meals.reduce((a,m)=>a+n0(m.protein),0),
-    burn:d.workouts.reduce((a,w)=>a+burned(w,k),0), min:d.workouts.reduce((a,w)=>a+n0(w.min),0),
+    teh:(d.tehillim||0)+(d.tehillimShuk||0), tehBurn:tehKcal(k,d.tehillim,d.tehillimShuk),
+    burn:d.workouts.reduce((a,w)=>a+burned(w,k),0)+tehKcal(k,d.tehillim,d.tehillimShuk), min:d.workouts.reduce((a,w)=>a+n0(w.min),0),
     km:d.workouts.reduce((a,w)=>a+(w.type==='run'?n0(w.km):0),0), water:d.water||0, nMeals:d.meals.length, nW:d.workouts.length }; };
+// Tehillim: ~1.5 min per chapter on average. Murmuring while seated ~1.5 MET (+0.5 over rest); with shuckling ~2.3 MET (+1.3).
+const TEH_MIN = 1.5;
+const tehKcal = (k, ch, shuk) => Math.round(((ch||0)*0.5 + (shuk||0)*1.3) * bodyWeight(k) * TEH_MIN / 60 * 10) / 10;
+const perChapter = (k, shuk) => (shuk ? 1.3 : 0.5) * bodyWeight(k) * TEH_MIN / 60;
 const pace = (min,km) => { if(!km||!min) return ''; const p=min/km; const m=Math.floor(p), s=Math.round((p-m)*60); return `${m}:${pad(s===60?0:s)}`; };
 
 /* ---------- storage: account db when available, browser storage otherwise ---------- */
@@ -232,7 +239,7 @@ async function flush(){
       if (k === 'settings') await col.doc('settings').set({...S.settings});
       else {
         const d = S.days[k];
-        const empty = !d || (!d.water && !d.meals.length && !d.workouts.length && d.weight == null && d.waist == null);
+        const empty = !d || (!d.water && !d.tehillim && !d.tehillimShuk && !d.meals.length && !d.workouts.length && d.weight == null && d.waist == null);
         if (empty) await col.doc('d-'+k).delete(); else await col.doc('d-'+k).set(JSON.parse(JSON.stringify(d)));
       }
     } catch(e){ S.note = 'השמירה לחשבון נכשלה, הנתונים נשמרו בדפדפן. נסה שוב בעוד רגע.'; renderStatus(); }
@@ -358,6 +365,24 @@ function viewToday(){
         </div>
         <button class="btn">הוסף ארוחה</button>
       </form>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>תהילים</h2><span class="small muted">ניקוד קלורי</span></div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><div class="v">${fmt(s.teh)} <span class="small muted">פרקים</span></div><div class="k">${d.tehillimShuk?`מתוכם <span class="num">${d.tehillimShuk}</span> עם שאקלען`:'נאמרו היום'}</div></div>
+        <div class="stat"><div class="v">${fmt(s.tehBurn,1)} <span class="small muted">קק״ל</span></div><div class="k">נשרפו במלמול</div></div>
+      </div>
+      <div class="wbtns" style="margin-block:0 10px">
+        <button class="chip" data-act="teh" data-n="1">+ פרק</button>
+        <button class="chip" data-act="teh" data-n="5">+ 5 פרקים</button>
+        <button class="chip" data-act="teh" data-n="1" data-shuk="1">+ פרק עם שאקלען</button>
+        <button class="chip" data-act="teh" data-n="30" data-shuk="1">+ יום בחודש (~30)</button>
+        <button class="chip ghost" data-act="teh" data-n="-1" ${s.teh?'':'disabled'}>− פרק</button>
+      </div>
+      <p class="small muted" style="margin:0">כדי לשרוף חתיכת קוגל ירושלמי צריך <b class="num">${Math.ceil(350/perChapter(S.date,false))}</b> פרקים במלמול, או <b class="num">${Math.ceil(350/perChapter(S.date,true))}</b> עם שאקלען. ספר שלם ≈ <span class="num">${Math.round(150*perChapter(S.date,true))}</span> קק״ל. תפילה עוזרת, אבל לא לזה.</p>
     </div>
   </section>
 
@@ -574,7 +599,7 @@ function viewSettings(){
     <div class="panel small" style="display:grid;gap:6px">
       <div>מעלקה הוא אתה. המטרה: להגיע ליום שבו הגארטל נסגר והשלייקס הולכות לגניזה.</div>
       <div>שלוש הנקודות בכל יום בשבוע: <span style="color:var(--water)">●</span> יעד מים, <span style="color:var(--food)">●</span> בתוך יעד הקלוריות, <span style="color:var(--move)">●</span> היה אימון.</div>
-      <div class="muted">הקלוריות שנשרפו הן הערכה לפי סוג האימון, משך ומשקל הגוף.</div>
+      <div class="muted">הקלוריות שנשרפו הן הערכה לפי סוג האימון, משך ומשקל הגוף. תהילים: כ־1.5 דקות לפרק, מלמול בישיבה ≈ 1.5 MET, עם שאקלען ≈ 2.3 MET. נכלל במאזן היומי.</div>
       <p class="status" id="status" style="margin:0"></p>
     </div></section>`;
 }
@@ -588,6 +613,12 @@ document.addEventListener('click', e => {
   else if (a === 'next'){ if (S.date < TODAY()) { S.date = addDays(S.date,1); render(); } }
   else if (a === 'go'){ S.date = b.dataset.k; render(); }
   else if (a === 'water'){ const d = day(S.date); d.water = Math.max(0, (d.water||0) + Number(b.dataset.ml)); save(S.date); render(); }
+  else if (a === 'teh'){
+    const d = day(S.date), n = Number(b.dataset.n), f = b.dataset.shuk ? 'tehillimShuk' : 'tehillim';
+    if (n < 0){ if (d.tehillim) d.tehillim--; else if (d.tehillimShuk) d.tehillimShuk--; }
+    else d[f] = (d[f]||0) + n;
+    save(S.date); render();
+  }
   else if (a === 'delmeal' || a === 'delwork'){
     const k = S.date, d = day(k), list = a === 'delmeal' ? 'meals' : 'workouts';
     const idx = d[list].findIndex(x => x.id === b.dataset.id); if (idx < 0) return;

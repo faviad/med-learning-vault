@@ -1,0 +1,600 @@
+<title>יומן הכרס</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one phone column; a sticky date bar on top, a fixed tab bar at the bottom, sections stacked by what you log most often (water, food, training). The tape measure is the signature element. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --line:#DCE3DE; --ink:#15302A; --muted:#5E716B;
+  --tape:#E9B824; --tape-ink:#3A2E05; --water:#2C7BD0; --food:#D9822B; --move:#2E9D6A; --warn:#C8452F;
+  --font-display:"Secular One","Rubik","Arial Hebrew",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans Hebrew","Segoe UI","Arial Hebrew",system-ui,sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
+  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
+  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; color-scheme:dark}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--font-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+#app{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(96px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;margin:0;text-wrap:balance}
+h2{font-size:1.25rem}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;flex-direction:column}
+.brand h1{font-size:1.5rem;line-height:1.1}
+.datenav{display:flex;align-items:center;gap:4px}
+.datenav button{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:34px;height:34px;display:grid;place-items:center;font-size:1rem}
+.datenav button:disabled{opacity:.35;cursor:default}
+.datelabel{min-width:92px;text-align:center;font-weight:600;font-size:.9rem}
+
+/* week strip */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-block:4px 18px}
+.wd{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border-radius:10px}
+.wd.sel{background:var(--surface);box-shadow:0 0 0 1px var(--line)}
+.wd .l{font-size:.75rem;color:var(--muted)}
+.wd .n{font-family:var(--font-num);font-size:.85rem}
+.dots{display:flex;gap:3px;height:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.w{background:var(--water)} .dots i.f{background:var(--food)} .dots i.m{background:var(--move)}
+
+section{margin-block:0 22px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-block:0 10px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+/* water */
+.water{display:flex;align-items:center;gap:18px}
+.ring{flex:0 0 112px;position:relative}
+.ring svg{display:block;width:112px;height:112px}
+.ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1.15}
+.ring .c b{font-family:var(--font-num);font-size:1.3rem;font-weight:500}
+.wbtns{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 13px;font-size:.88rem;white-space:nowrap}
+.chip.primary{background:var(--water);border-color:var(--water);color:#fff}
+.chip.ghost{background:transparent}
+.chip:active{transform:translateY(1px)}
+
+/* bars */
+.meter{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-block:0 14px}
+.stat .v{font-family:var(--font-num);font-size:1.15rem}
+.stat .k{font-size:.8rem;color:var(--muted)}
+
+/* lists */
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.list li{display:flex;align-items:center;gap:10px;padding-block:9px;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .tag{font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.list .main{flex:1;min-width:0;overflow-wrap:anywhere}
+.list .x{border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:50%;font-size:1.1rem;line-height:1}
+.list .x:hover{background:var(--bg);color:var(--warn)}
+.empty{color:var(--muted);font-size:.9rem;padding-block:6px}
+
+/* forms */
+form.add{display:grid;gap:8px;margin-block:12px 0;padding-top:12px;border-top:1px dashed var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row > *{flex:1 1 90px;min-width:0}
+input,select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;width:100%;box-sizing:border-box}
+input[type=number]{font-family:var(--font-num)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted)}
+.btn{border:0;border-radius:10px;padding:10px 14px;background:var(--ink);color:var(--bg);font-weight:600}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.quick .chip{font-size:.8rem;padding:5px 10px}
+
+/* tape measure */
+.tape{position:relative;height:58px;border-radius:6px;background:
+  repeating-linear-gradient(90deg,var(--tape-ink) 0 1px,transparent 1px 10px) bottom/100% 12px no-repeat,
+  repeating-linear-gradient(90deg,var(--tape-ink) 0 1px,transparent 1px 50px) bottom/100% 22px no-repeat,
+  var(--tape);
+  color:var(--tape-ink);overflow:hidden;direction:ltr}
+.tape .mk{position:absolute;top:6px;transform:translateX(-50%);font-family:var(--font-num);font-size:.72rem;white-space:nowrap}
+.tape .now{position:absolute;top:0;bottom:0;width:3px;background:var(--warn);transform:translateX(-50%)}
+.tape .now span{position:absolute;top:4px;left:6px;font-family:var(--font-num);font-size:.8rem;font-weight:500;background:var(--tape);padding:0 3px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-block:14px 0}
+.kpi{background:var(--bg);border-radius:10px;padding:10px}
+.kpi .v{font-family:var(--font-num);font-size:1.1rem}
+.kpi .k{font-size:.75rem;color:var(--muted)}
+.pill{display:inline-block;font-size:.75rem;padding:2px 9px;border-radius:999px;font-weight:600}
+.pill.good{background:color-mix(in srgb,var(--move) 18%,transparent);color:var(--move)}
+.pill.mid{background:color-mix(in srgb,var(--food) 20%,transparent);color:var(--food)}
+.pill.bad{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+
+.chart{width:100%;height:auto;display:block;direction:ltr}
+.chart text{fill:var(--muted);font-family:var(--font-num);font-size:10px}
+
+/* tabs */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{border:0;background:transparent;padding:8px 0;border-radius:10px;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--ink);font-weight:600}
+nav.tabs button.on svg{color:var(--tape)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:7;background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 8px 8px 16px;display:flex;gap:10px;align-items:center;font-size:.88rem;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.toast button{border:0;background:var(--tape);color:var(--tape-ink);border-radius:999px;padding:4px 12px;font-weight:600}
+.status{font-size:.78rem;color:var(--muted);margin-block:8px 0}
+@media (prefers-reduced-motion:no-preference){.ring circle.p{transition:stroke-dashoffset .4s ease}.meter i{transition:width .4s ease}}
+</style>
+
+<div id="app" dir="rtl" lang="he">
+  <header class="top">
+    <div class="brand"><h1>יומן הכרס</h1><span class="small muted" id="sub">אוכל · אימונים · מים · היקף מותניים</span></div>
+    <div class="datenav" id="datenav"></div>
+  </header>
+  <main id="view"><p class="muted">טוען…</p></main>
+</div>
+<nav class="tabs" dir="rtl" aria-label="ניווט"><div class="in" id="tabs"></div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+document.documentElement.setAttribute('dir','rtl');
+document.documentElement.setAttribute('lang','he');
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,'0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (k,n) => { const d = parseKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const TODAY = () => keyOf(new Date());
+const DOW = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+const DOW_LONG = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const weekStart = k => addDays(k, -parseKey(k).getDay()); // week starts Sunday
+const fmtDate = k => { const d=parseKey(k); return `${d.getDate()}.${d.getMonth()+1}`; };
+
+/* ---------- model ---------- */
+const DEFAULTS = { waterGoal:2500, kcalGoal:1900, proteinGoal:130, activeMinGoal:180, runKmGoal:12,
+  height:null, weightStart:null, weightGoal:null, waistStart:null, waistGoal:null };
+const S = { settings:{...DEFAULTS}, days:{}, date:TODAY(), view:'today', cloud:false, note:'' };
+const day = k => S.days[k] || (S.days[k] = { water:0, meals:[], workouts:[] });
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const n0 = v => { const x = parseFloat(String(v).replace(',','.')); return isFinite(x) ? x : 0; };
+const nOrNull = v => { if (v === '' || v == null) return null; const x = parseFloat(String(v).replace(',','.')); return isFinite(x) ? x : null; };
+const fmt = (v,d=0) => Number(v).toLocaleString('he-IL',{maximumFractionDigits:d,minimumFractionDigits:0});
+
+const WORKOUTS = { run:{l:'ריצה',met:9.8}, walk:{l:'הליכה',met:3.8}, strength:{l:'כוח',met:5}, hiit:{l:'HIIT',met:8},
+  bike:{l:'אופניים',met:7.5}, swim:{l:'שחייה',met:7}, core:{l:'בטן / ליבה',met:3.8}, yoga:{l:'יוגה / מתיחות',met:2.5}, other:{l:'אחר',met:5} };
+const MEALS = { b:'בוקר', l:'צהריים', d:'ערב', s:'נשנוש' };
+
+function latest(field, upTo){
+  const ks = Object.keys(S.days).filter(k => S.days[k][field] != null && (!upTo || k <= upTo)).sort();
+  return ks.length ? { k:ks[ks.length-1], v:S.days[ks[ks.length-1]][field] } : null;
+}
+function first(field){
+  const ks = Object.keys(S.days).filter(k => S.days[k][field] != null).sort();
+  return ks.length ? { k:ks[0], v:S.days[ks[0]][field] } : null;
+}
+const bodyWeight = k => (latest('weight',k)?.v) || S.settings.weightStart || 80;
+const burned = (w,k) => Math.round((WORKOUTS[w.type]?.met || 5) * bodyWeight(k) * (n0(w.min)/60));
+const sums = k => { const d = S.days[k] || {meals:[],workouts:[],water:0};
+  return { kcal:d.meals.reduce((a,m)=>a+n0(m.kcal),0), protein:d.meals.reduce((a,m)=>a+n0(m.protein),0),
+    burn:d.workouts.reduce((a,w)=>a+burned(w,k),0), min:d.workouts.reduce((a,w)=>a+n0(w.min),0),
+    km:d.workouts.reduce((a,w)=>a+(w.type==='run'?n0(w.km):0),0), water:d.water||0, nMeals:d.meals.length, nW:d.workouts.length }; };
+const pace = (min,km) => { if(!km||!min) return ''; const p=min/km; const m=Math.floor(p), s=Math.round((p-m)*60); return `${m}:${pad(s===60?0:s)}`; };
+
+/* ---------- storage: account db when available, browser storage otherwise ---------- */
+const LS = 'belly-tracker-v1';
+function lsRead(){ try { return JSON.parse(localStorage.getItem(LS) || 'null'); } catch { return null; } }
+function lsWrite(){ try { localStorage.setItem(LS, JSON.stringify({settings:S.settings, days:S.days})); } catch {} }
+let col = null; const dirty = new Set(); let timer = null;
+function save(k){ dirty.add(k); lsWrite(); clearTimeout(timer); timer = setTimeout(flush, 500); }
+async function flush(){
+  if (!col) return;
+  const keys = [...dirty]; dirty.clear();
+  for (const k of keys){
+    try {
+      if (k === 'settings') await col.doc('settings').set({...S.settings});
+      else {
+        const d = S.days[k];
+        const empty = !d || (!d.water && !d.meals.length && !d.workouts.length && d.weight == null && d.waist == null);
+        if (empty) await col.doc('d-'+k).delete(); else await col.doc('d-'+k).set(JSON.parse(JSON.stringify(d)));
+      }
+    } catch(e){ S.note = 'השמירה לחשבון נכשלה, הנתונים נשמרו בדפדפן. נסה שוב בעוד רגע.'; renderStatus(); }
+  }
+}
+async function connect(){
+  try {
+    if (!window.claude?.use) return;
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!db || !user) return;
+    const id = await user.id(); if (!id) return;
+    col = db.collection('data/users/' + id);
+    let firstSnap = true;
+    col.onSnapshot(snap => {
+      if (firstSnap && snap.empty){
+        // move anything logged before the account store connected
+        firstSnap = false; S.cloud = true;
+        Object.keys(S.days).forEach(k => dirty.add(k)); dirty.add('settings'); flush(); renderStatus(); return;
+      }
+      firstSnap = false;
+      const days = {}; let settings = {...DEFAULTS};
+      snap.docs.forEach(d => { const v = d.data() || {};
+        if (d.id === 'settings') settings = {...DEFAULTS, ...v};
+        else if (d.id.startsWith('d-')) days[d.id.slice(2)] = { water:0, meals:[], workouts:[], ...v }; });
+      // keep local edits that have not been sent yet
+      dirty.forEach(k => { if (k !== 'settings' && S.days[k]) days[k] = S.days[k]; });
+      S.days = days; if (!dirty.has('settings')) S.settings = settings;
+      S.cloud = true; S.note = ''; lsWrite(); render();
+    }, () => { S.note = 'אין חיבור לחשבון כרגע. הנתונים נשמרים בדפדפן.'; renderStatus(); });
+  } catch {}
+}
+
+/* ---------- toast + undo ---------- */
+let undoFn = null, toastT = null;
+function toast(msg, undo){
+  const t = $('#toast'); undoFn = undo || null;
+  t.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button data-act="undo">ביטול</button>' : ''}`;
+  if (!undo) t.style.paddingLeft = '16px'; else t.style.paddingLeft = '';
+  t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; undoFn = null; }, 4000);
+}
+
+/* ---------- render ---------- */
+const ICONS = {
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+  train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>',
+  progress:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="8" width="19" height="8" rx="1.5"/><path d="M6 8v3M10 8v4M14 8v3M18 8v4"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>'
+};
+const TABS = [['today','היום'],['train','אימונים'],['progress','התקדמות'],['settings','הגדרות']];
+
+function render(){
+  $('#tabs').innerHTML = TABS.map(([v,l]) => `<button data-act="tab" data-v="${v}" class="${S.view===v?'on':''}" aria-current="${S.view===v?'page':'false'}">${ICONS[v]}<span>${l}</span></button>`).join('');
+  const isToday = S.date === TODAY();
+  const label = isToday ? 'היום' : S.date === addDays(TODAY(),-1) ? 'אתמול' : `${DOW_LONG[parseKey(S.date).getDay()]} ${fmtDate(S.date)}`;
+  $('#datenav').innerHTML = (S.view==='today'||S.view==='train') ?
+    `<button data-act="prev" aria-label="יום קודם">›</button><span class="datelabel">${label}</span><button data-act="next" aria-label="יום הבא" ${isToday?'disabled':''}>‹</button>` : '';
+  const v = { today:viewToday, train:viewTrain, progress:viewProgress, settings:viewSettings }[S.view]();
+  $('#view').innerHTML = v;
+  renderStatus();
+}
+function renderStatus(){
+  const el = document.getElementById('status'); if (!el) return;
+  el.textContent = S.note || (S.cloud ? 'נשמר בחשבון שלך, פרטי רק לך. זמין מכל מכשיר.' : 'נשמר בדפדפן הזה בלבד.');
+}
+
+function weekStrip(){
+  const ws = weekStart(S.date), st = S.settings;
+  return `<div class="week">${[0,1,2,3,4,5,6].map(i => { const k = addDays(ws,i), s = sums(k), fut = k > TODAY();
+    const w = s.water >= st.waterGoal, f = s.nMeals && s.kcal <= st.kcalGoal, m = s.nW > 0;
+    return `<button class="wd ${k===S.date?'sel':''}" data-act="go" data-k="${k}" ${fut?'disabled style="opacity:.4"':''} aria-label="${DOW_LONG[i]} ${fmtDate(k)}">
+      <span class="l">${DOW[i]}</span><span class="n">${parseKey(k).getDate()}</span>
+      <span class="dots"><i class="${w?'w':''}"></i><i class="${f?'f':''}"></i><i class="${m?'m':''}"></i></span></button>`; }).join('')}</div>`;
+}
+
+function viewToday(){
+  const st = S.settings, d = day(S.date), s = sums(S.date);
+  const wp = Math.min(1, s.water / st.waterGoal), C = 2*Math.PI*48;
+  const kp = Math.min(1, s.kcal / st.kcalGoal), pp = Math.min(1, s.protein / st.proteinGoal);
+  const over = s.kcal > st.kcalGoal;
+  const recent = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].meals.slice().reverse().forEach(m => {
+    if (recent.length < 8 && !recent.find(r => r.name === m.name)) recent.push(m); }));
+  return `${weekStrip()}
+  <section>
+    <div class="sec-h"><h2>מים</h2><span class="small muted">יעד <span class="num">${fmt(st.waterGoal)}</span> מ״ל</span></div>
+    <div class="panel water">
+      <div class="ring" role="img" aria-label="${fmt(s.water)} מתוך ${fmt(st.waterGoal)} מ״ל">
+        <svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="48" fill="none" stroke="var(--line)" stroke-width="10"/>
+        <circle class="p" cx="56" cy="56" r="48" fill="none" stroke="var(--water)" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="${C*(1-wp)}" transform="rotate(-90 56 56)"/></svg>
+        <div class="c"><div><b>${fmt(s.water/1000,2)}</b><div class="small muted">ליטר · ${Math.round(s.water/250)} כוסות</div></div></div>
+      </div>
+      <div class="wbtns">
+        <button class="chip primary" data-act="water" data-ml="250">+ כוס 250</button>
+        <button class="chip primary" data-act="water" data-ml="500">+ בקבוק 500</button>
+        <button class="chip" data-act="water" data-ml="750">+ 750</button>
+        <button class="chip ghost" data-act="water" data-ml="-250" ${s.water?'':'disabled'}>− 250</button>
+        <span class="small muted" style="flex-basis:100%">${s.water>=st.waterGoal?'עמדת ביעד המים היום':`נשארו <span class="num">${fmt(st.waterGoal-s.water)}</span> מ״ל`}</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span></span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><div class="v">${fmt(s.kcal)} <span class="small muted">/ ${fmt(st.kcalGoal)}</span></div><div class="k">קלוריות</div>
+          <div class="meter"><i style="width:${kp*100}%;background:${over?'var(--warn)':'var(--food)'}"></i></div></div>
+        <div class="stat"><div class="v">${fmt(s.protein)} <span class="small muted">/ ${fmt(st.proteinGoal)} ג׳</span></div><div class="k">חלבון</div>
+          <div class="meter"><i style="width:${pp*100}%;background:var(--move)"></i></div></div>
+      </div>
+      ${s.burn ? `<p class="small muted" style="margin:0 0 10px">נשרפו באימונים כ־<span class="num">${fmt(s.burn)}</span> קק״ל · מאזן נטו <span class="num">${fmt(s.kcal - s.burn)}</span></p>` : ''}
+      ${d.meals.length ? `<ul class="list">${d.meals.map(m => `<li><span class="tag">${MEALS[m.meal]||''}</span><span class="main">${esc(m.name)}</span>
+        <span class="num small">${fmt(n0(m.kcal))}${m.protein?` · ${fmt(n0(m.protein))}ג׳`:''}</span>
+        <button class="x" data-act="delmeal" data-id="${m.id}" aria-label="מחק ${esc(m.name)}">×</button></li>`).join('')}</ul>`
+        : `<p class="empty">עוד לא נרשם אוכל ${S.date===TODAY()?'היום':'ביום הזה'}. הוסף ארוחה למטה.</p>`}
+      <form class="add" data-form="meal">
+        ${recent.length ? `<div class="quick">${recent.map((m,i) => `<button type="button" class="chip" data-act="requick" data-i="${i}">${esc(m.name)} · <span class="num">${fmt(n0(m.kcal))}</span></button>`).join('')}</div>` : ''}
+        <input id="m-name" name="name" placeholder="מה אכלת? למשל: חביתה ו־2 פרוסות לחם" required autocomplete="off">
+        <div class="row">
+          <input id="m-kcal" name="kcal" type="number" inputmode="numeric" min="0" placeholder="קלוריות">
+          <input id="m-prot" name="protein" type="number" inputmode="decimal" min="0" placeholder="חלבון (ג׳)">
+          <select id="m-meal" name="meal">${Object.entries(MEALS).map(([k,l]) => `<option value="${k}" ${k===guessMeal()?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
+        <button class="btn">הוסף ארוחה</button>
+      </form>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>אימון</h2><button class="chip" data-act="tab" data-v="train">שבוע ואימונים ›</button></div>
+    <div class="panel">
+      ${workoutList(d)}
+      ${workoutForm()}
+    </div>
+  </section>
+  <p class="status" id="status"></p>`;
+  function guessMeal(){ const h = new Date().getHours(); return h<11?'b':h<16?'l':h<21?'d':'s'; }
+  // keep recent list reachable for quick add
+}
+
+function workoutList(d){
+  return d.workouts.length ? `<ul class="list">${d.workouts.map(w => `<li><span class="tag">${WORKOUTS[w.type]?.l||'אחר'}</span>
+    <span class="main">${w.type==='run'&&w.km?`<span class="num">${fmt(n0(w.km),2)}</span> ק״מ · קצב <span class="num">${pace(n0(w.min),n0(w.km))}</span> · `:''}<span class="num">${fmt(n0(w.min))}</span> דק׳${w.note?` · ${esc(w.note)}`:''}</span>
+    <span class="num small muted">~${fmt(burned(w,S.date))}</span>
+    <button class="x" data-act="delwork" data-id="${w.id}" aria-label="מחק אימון">×</button></li>`).join('')}</ul>`
+    : `<p class="empty">אין אימון רשום. גם 20 דקות הליכה נחשבות.</p>`;
+}
+function workoutForm(){
+  return `<form class="add" data-form="work">
+    <div class="row">
+      <select id="w-type" name="type" data-act="wtype">${Object.entries(WORKOUTS).map(([k,v]) => `<option value="${k}">${v.l}</option>`).join('')}</select>
+      <input id="w-min" name="min" type="number" inputmode="numeric" min="1" placeholder="דקות" required>
+      <input id="w-km" name="km" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ק״מ">
+    </div>
+    <input id="w-note" name="note" placeholder="הערה (לא חובה): אינטרוולים, דופק, איך הרגיש" autocomplete="off">
+    <button class="btn">הוסף אימון</button>
+  </form>`;
+}
+
+function viewTrain(){
+  const st = S.settings, ws = weekStart(S.date);
+  let min=0, km=0, burn=0, n=0;
+  for (let i=0;i<7;i++){ const s = sums(addDays(ws,i)); min+=s.min; km+=s.km; burn+=s.burn; n+=s.nW; }
+  // last 8 weeks
+  const weeks = []; for (let w=7; w>=0; w--){ const s0 = addDays(ws,-7*w); let m=0,k=0; for(let i=0;i<7;i++){ const s=sums(addDays(s0,i)); m+=s.min; k+=s.km; } weeks.push({k:s0,min:m,km:k}); }
+  const all = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].workouts.forEach(w => all.push({k,w})));
+  const runs = all.filter(x => x.w.type==='run' && n0(x.w.km)>0);
+  const longest = runs.reduce((a,x) => Math.max(a,n0(x.w.km)),0);
+  const best = runs.reduce((a,x) => { const p = n0(x.w.min)/n0(x.w.km); return a==null||p<a?p:a; }, null);
+  return `
+  <section>
+    <div class="sec-h"><h2>השבוע</h2><span class="small muted">${fmtDate(ws)}–${fmtDate(addDays(ws,6))}</span></div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><div class="v">${fmt(min)} <span class="small muted">/ ${fmt(st.activeMinGoal)} דק׳</span></div><div class="k">דקות פעילות</div>
+          <div class="meter"><i style="width:${Math.min(100,min/st.activeMinGoal*100)}%;background:var(--move)"></i></div></div>
+        <div class="stat"><div class="v">${fmt(km,1)} <span class="small muted">/ ${fmt(st.runKmGoal)} ק״מ</span></div><div class="k">ריצה</div>
+          <div class="meter"><i style="width:${Math.min(100,km/st.runKmGoal*100)}%;background:var(--tape)"></i></div></div>
+      </div>
+      <p class="small muted" style="margin:0"><span class="num">${n}</span> אימונים · כ־<span class="num">${fmt(burn)}</span> קק״ל נשרפו</p>
+    </div>
+  </section>
+  <section>
+    <div class="sec-h"><h2>8 שבועות אחרונים</h2><span class="small muted">דקות פעילות לשבוע</span></div>
+    <div class="panel">${barChart(weeks.map(w => ({l:fmtDate(w.k), v:w.min})), st.activeMinGoal, 'var(--move)')}</div>
+  </section>
+  <section>
+    <div class="sec-h"><h2>הוספה ל${S.date===TODAY()?'היום':fmtDate(S.date)}</h2></div>
+    <div class="panel">${workoutList(day(S.date))}${workoutForm()}</div>
+  </section>
+  ${runs.length ? `<section><div class="sec-h"><h2>שיאי ריצה</h2></div><div class="panel"><div class="kpis" style="margin:0">
+    <div class="kpi"><div class="v">${fmt(longest,2)}</div><div class="k">ריצה ארוכה (ק״מ)</div></div>
+    <div class="kpi"><div class="v">${pace(best,1)}</div><div class="k">קצב מהיר (דק׳/ק״מ)</div></div>
+    <div class="kpi"><div class="v">${fmt(runs.reduce((a,x)=>a+n0(x.w.km),0),1)}</div><div class="k">סה״כ ק״מ</div></div></div></div></section>` : ''}
+  <section>
+    <div class="sec-h"><h2>היסטוריה</h2></div>
+    <div class="panel">${all.length ? `<ul class="list">${all.slice(0,30).map(({k,w}) => `<li><span class="tag">${fmtDate(k)}</span>
+      <span class="main">${WORKOUTS[w.type]?.l||'אחר'} · <span class="num">${fmt(n0(w.min))}</span> דק׳${w.type==='run'&&w.km?` · <span class="num">${fmt(n0(w.km),2)}</span> ק״מ`:''}</span></li>`).join('')}</ul>`
+      : '<p class="empty">האימונים שתרשום יופיעו כאן, עם סיכום שבועי ושיאים.</p>'}</div>
+  </section>
+  <p class="status" id="status"></p>`;
+}
+
+function barChart(items, goal, color){
+  const W=320, H=150, L=30, R=6, T=10, B=22, max = Math.max(goal||0, ...items.map(i=>i.v), 1);
+  const nice = Math.ceil(max/50)*50, bw = (W-L-R)/items.length;
+  const y = v => T + (H-T-B) * (1 - v/nice);
+  const ticks = [0, nice/2, nice];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="גרף עמודות">
+    ${ticks.map(t => `<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/><text x="${L-4}" y="${y(t)+3}" text-anchor="end">${Math.round(t)}</text>`).join('')}
+    ${goal ? `<line x1="${L}" x2="${W-R}" y1="${y(goal)}" y2="${y(goal)}" stroke="var(--tape)" stroke-width="1.5" stroke-dasharray="4 3"/>` : ''}
+    ${items.map((it,i) => { const h = (H-T-B)*(it.v/nice); return `<rect x="${L+i*bw+bw*.18}" y="${y(it.v)}" width="${bw*.64}" height="${Math.max(0,h)}" rx="3" fill="${color}" opacity="${i===items.length-1?1:.6}"/>
+      <text x="${L+i*bw+bw/2}" y="${H-6}" text-anchor="middle">${it.l}</text>`; }).join('')}
+  </svg>`;
+}
+
+function lineChart(points, goal, unit){
+  if (points.length < 2) return `<p class="empty">צריך לפחות שתי מדידות כדי לראות מגמה. מומלץ למדוד פעם בשבוע, בבוקר, באותו מקום.</p>`;
+  const W=320, H=170, L=34, R=10, T=12, B=22;
+  const vals = points.map(p=>p.v).concat(goal?[goal]:[]);
+  let lo = Math.floor(Math.min(...vals)-1), hi = Math.ceil(Math.max(...vals)+1);
+  const t0 = parseKey(points[0].k).getTime(), t1 = parseKey(points[points.length-1].k).getTime() || t0+1;
+  const x = k => L + (W-L-R) * ((parseKey(k).getTime()-t0) / Math.max(1,t1-t0));
+  const y = v => T + (H-T-B) * (1 - (v-lo)/(hi-lo));
+  const step = Math.max(1, Math.round((hi-lo)/4));
+  const ticks = []; for (let v=lo; v<=hi; v+=step) ticks.push(v);
+  const path = points.map((p,i) => `${i?'L':'M'}${x(p.k).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
+  const area = `${path} L${x(points[points.length-1].k).toFixed(1)} ${H-B} L${x(points[0].k).toFixed(1)} ${H-B} Z`;
+  const last = points[points.length-1];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="מגמת ${unit}">
+    ${ticks.map(t => `<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L-4}" y="${y(t)+3}" text-anchor="end">${t}</text>`).join('')}
+    ${goal ? `<line x1="${L}" x2="${W-R}" y1="${y(goal)}" y2="${y(goal)}" stroke="var(--move)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W-R}" y="${y(goal)-4}" text-anchor="end" style="fill:var(--move)">יעד ${goal}</text>` : ''}
+    <path d="${area}" fill="var(--tape)" opacity=".18"/>
+    <path d="${path}" fill="none" stroke="var(--tape)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${points.map(p => `<circle cx="${x(p.k)}" cy="${y(p.v)}" r="2.5" fill="var(--tape)"/>`).join('')}
+    <circle cx="${x(last.k)}" cy="${y(last.v)}" r="5" fill="var(--warn)"/>
+    <text x="${L}" y="${H-6}">${fmtDate(points[0].k)}</text><text x="${W-R}" y="${H-6}" text-anchor="end">${fmtDate(last.k)}</text>
+  </svg>`;
+}
+
+function viewProgress(){
+  const st = S.settings, td = day(TODAY());
+  const w0 = st.waistStart ?? first('waist')?.v, wNow = latest('waist')?.v ?? w0, wGoal = st.waistGoal;
+  const kg0 = st.weightStart ?? first('weight')?.v, kgNow = latest('weight')?.v ?? kg0;
+  const whr = (wNow && st.height) ? wNow / st.height : null;
+  const whrPill = whr == null ? '' : whr < 0.5 ? '<span class="pill good">תקין</span>' : whr < 0.6 ? '<span class="pill mid">מוגבר</span>' : '<span class="pill bad">גבוה</span>';
+  let tape = '';
+  if (wNow){
+    const lo = Math.floor(Math.min(wNow, wGoal ?? wNow, w0 ?? wNow) - 4), hi = Math.ceil(Math.max(wNow, w0 ?? wNow) + 4);
+    const pos = v => ((v-lo)/(hi-lo)*100).toFixed(1);
+    const marks = []; for (let v = Math.ceil(lo/5)*5; v <= hi; v += 5) marks.push(v);
+    tape = `<div class="tape" aria-label="היקף מותניים ${wNow} ס״מ">
+      ${marks.map(v => `<span class="mk" style="left:${pos(v)}%">${v}</span>`).join('')}
+      ${wGoal ? `<span class="now" style="left:${pos(wGoal)}%;background:var(--move);width:2px"></span>` : ''}
+      <span class="now" style="left:${pos(wNow)}%"><span>${fmt(wNow,1)}</span></span></div>
+      <p class="small muted" style="margin:6px 0 0">${wGoal ? `קו ירוק = יעד <span class="num">${wGoal}</span> ס״מ · ` : ''}קו אדום = מדידה אחרונה</p>`;
+  }
+  const waistPts = Object.keys(S.days).filter(k => S.days[k].waist != null).sort().map(k => ({k, v:S.days[k].waist}));
+  const weightPts = Object.keys(S.days).filter(k => S.days[k].weight != null).sort().map(k => ({k, v:S.days[k].weight}));
+  // 14-day consistency
+  let wDays=0, mDays=0, fDays=0; for (let i=0;i<14;i++){ const s = sums(addDays(TODAY(),-i)); if (s.water>=st.waterGoal) wDays++; if (s.nW) mDays++; if (s.nMeals && s.kcal<=st.kcalGoal) fDays++; }
+  return `
+  <section>
+    <div class="sec-h"><h2>היקף מותניים</h2>${w0 && wNow && w0!==wNow ? `<span class="small">${wNow<=w0?'ירדת':'עלית'} <span class="num">${fmt(Math.abs(w0-wNow),1)}</span> ס״מ</span>` : ''}</div>
+    <div class="panel">
+      ${tape || '<p class="empty">המדד הכי חשוב לכרס. מדוד סביב הבטן בגובה הטבור, בבוקר לפני אוכל, ורשום למטה.</p>'}
+      <div class="kpis">
+        <div class="kpi"><div class="v">${wNow ? fmt(wNow,1) : '—'}</div><div class="k">ס״מ עכשיו</div></div>
+        <div class="kpi"><div class="v">${wGoal && wNow ? fmt(Math.max(0,wNow-wGoal),1) : '—'}</div><div class="k">ס״מ ליעד</div></div>
+        <div class="kpi"><div class="v">${whr ? fmt(whr,2) : '—'}</div><div class="k">מותניים/גובה ${whrPill}</div></div>
+      </div>
+      ${!st.height ? '<p class="small muted" style="margin:10px 0 0">הוסף גובה בהגדרות כדי לראות יחס מותניים/גובה. מתחת ל־0.5 נחשב תקין.</p>' : ''}
+    </div>
+  </section>
+  <section>
+    <div class="sec-h"><h2>מדידה היום</h2><span class="small muted">${fmtDate(TODAY())}</span></div>
+    <form class="panel" data-form="body" style="display:grid;gap:10px">
+      <div class="row">
+        <label class="f">היקף מותניים (ס״מ)<input id="b-waist" name="waist" type="number" inputmode="decimal" step="0.1" min="40" max="200" value="${td.waist ?? ''}" placeholder="${wNow ?? 'למשל 98'}"></label>
+        <label class="f">משקל (ק״ג)<input id="b-weight" name="weight" type="number" inputmode="decimal" step="0.1" min="30" max="300" value="${td.weight ?? ''}" placeholder="${kgNow ?? 'למשל 86'}"></label>
+      </div>
+      <button class="btn">שמור מדידה</button>
+    </form>
+  </section>
+  <section>
+    <div class="sec-h"><h2>מגמת מותניים</h2></div>
+    <div class="panel">${lineChart(waistPts, wGoal, 'מותניים')}</div>
+  </section>
+  <section>
+    <div class="sec-h"><h2>מגמת משקל</h2>${kg0 && kgNow && kg0!==kgNow ? `<span class="small"><span class="num">${kgNow<=kg0?'−':'+'}${fmt(Math.abs(kg0-kgNow),1)}</span> ק״ג</span>` : ''}</div>
+    <div class="panel">${lineChart(weightPts, st.weightGoal, 'משקל')}</div>
+  </section>
+  <section>
+    <div class="sec-h"><h2>עקביות</h2><span class="small muted">14 הימים האחרונים</span></div>
+    <div class="panel"><div class="kpis" style="margin:0">
+      <div class="kpi"><div class="v" style="color:var(--water)">${wDays}/14</div><div class="k">ימים ביעד מים</div></div>
+      <div class="kpi"><div class="v" style="color:var(--food)">${fDays}/14</div><div class="k">ימים ביעד קלוריות</div></div>
+      <div class="kpi"><div class="v" style="color:var(--move)">${mDays}/14</div><div class="k">ימים עם אימון</div></div>
+    </div></div>
+  </section>
+  <p class="status" id="status"></p>`;
+}
+
+function viewSettings(){
+  const st = S.settings;
+  const f = (id,label,val,step='1') => `<label class="f">${label}<input id="s-${id}" name="${id}" type="number" inputmode="decimal" step="${step}" value="${val ?? ''}"></label>`;
+  return `
+  <form data-form="settings" style="display:grid;gap:22px">
+    <section style="margin:0"><div class="sec-h"><h2>יעדים יומיים</h2></div>
+      <div class="panel" style="display:grid;gap:10px"><div class="row">
+        ${f('waterGoal','מים (מ״ל)',st.waterGoal,'50')}${f('kcalGoal','קלוריות',st.kcalGoal,'10')}${f('proteinGoal','חלבון (ג׳)',st.proteinGoal)}
+      </div></div></section>
+    <section style="margin:0"><div class="sec-h"><h2>יעדים שבועיים</h2></div>
+      <div class="panel"><div class="row">${f('activeMinGoal','דקות פעילות',st.activeMinGoal,'5')}${f('runKmGoal','ק״מ ריצה',st.runKmGoal,'0.5')}</div></div></section>
+    <section style="margin:0"><div class="sec-h"><h2>גוף</h2></div>
+      <div class="panel" style="display:grid;gap:10px">
+        <div class="row">${f('height','גובה (ס״מ)',st.height)}</div>
+        <div class="row">${f('waistStart','מותניים בהתחלה',st.waistStart,'0.1')}${f('waistGoal','יעד מותניים',st.waistGoal,'0.1')}</div>
+        <div class="row">${f('weightStart','משקל בהתחלה',st.weightStart,'0.1')}${f('weightGoal','יעד משקל',st.weightGoal,'0.1')}</div>
+        <p class="small muted" style="margin:0">טיפ: יעד מותניים טוב הוא חצי מהגובה (למשל 88 ס״מ לגובה 176). ירידה של 0.5–1 ס״מ בשבועיים היא קצב מצוין.</p>
+      </div></section>
+    <button class="btn">שמור הגדרות</button>
+  </form>
+  <section style="margin-top:22px"><div class="sec-h"><h2>איך זה עובד</h2></div>
+    <div class="panel small" style="display:grid;gap:6px">
+      <div>שלוש הנקודות בכל יום בשבוע: <span style="color:var(--water)">●</span> יעד מים, <span style="color:var(--food)">●</span> בתוך יעד הקלוריות, <span style="color:var(--move)">●</span> היה אימון.</div>
+      <div class="muted">הקלוריות שנשרפו הן הערכה לפי סוג האימון, משך ומשקל הגוף.</div>
+      <p class="status" id="status" style="margin:0"></p>
+    </div></section>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT') return;
+  const a = b.dataset.act;
+  if (a === 'tab'){ S.view = b.dataset.v; render(); window.scrollTo(0,0); }
+  else if (a === 'prev'){ S.date = addDays(S.date,-1); render(); }
+  else if (a === 'next'){ if (S.date < TODAY()) { S.date = addDays(S.date,1); render(); } }
+  else if (a === 'go'){ S.date = b.dataset.k; render(); }
+  else if (a === 'water'){ const d = day(S.date); d.water = Math.max(0, (d.water||0) + Number(b.dataset.ml)); save(S.date); render(); }
+  else if (a === 'delmeal' || a === 'delwork'){
+    const k = S.date, d = day(k), list = a === 'delmeal' ? 'meals' : 'workouts';
+    const idx = d[list].findIndex(x => x.id === b.dataset.id); if (idx < 0) return;
+    const [gone] = d[list].splice(idx,1); save(k); render();
+    toast(a === 'delmeal' ? 'הארוחה נמחקה' : 'האימון נמחק', () => { day(k)[list].splice(idx,0,gone); save(k); render(); });
+  }
+  else if (a === 'requick'){
+    const recent = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].meals.slice().reverse().forEach(m => {
+      if (recent.length < 8 && !recent.find(r => r.name === m.name)) recent.push(m); }));
+    const m = recent[Number(b.dataset.i)]; if (!m) return;
+    const meal = document.getElementById('m-meal')?.value || m.meal;
+    day(S.date).meals.push({ id:uid(), name:m.name, kcal:m.kcal, protein:m.protein, meal }); save(S.date); render();
+    toast(`נוסף: ${m.name}`);
+  }
+  else if (a === 'undo'){ const f = undoFn; undoFn = null; $('#toast').hidden = true; f && f(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form[data-form]'); if (!f) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f).entries()), kind = f.dataset.form;
+  if (kind === 'meal'){
+    if (!v.name.trim()) return;
+    day(S.date).meals.push({ id:uid(), name:v.name.trim().slice(0,120), kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal });
+    save(S.date); render(); toast('הארוחה נוספה'); document.getElementById('m-name')?.focus();
+  } else if (kind === 'work'){
+    if (!n0(v.min)) return;
+    day(S.date).workouts.push({ id:uid(), type:v.type, min:n0(v.min), km:n0(v.km), note:(v.note||'').trim().slice(0,120) });
+    save(S.date); render(); toast('האימון נוסף');
+  } else if (kind === 'body'){
+    const d = day(TODAY()); d.waist = nOrNull(v.waist); d.weight = nOrNull(v.weight);
+    const st = S.settings; let touched = false;
+    if (st.waistStart == null && d.waist != null){ st.waistStart = d.waist; touched = true; }
+    if (st.weightStart == null && d.weight != null){ st.weightStart = d.weight; touched = true; }
+    save(TODAY()); if (touched) save('settings'); render(); toast('המדידה נשמרה');
+  } else if (kind === 'settings'){
+    const st = S.settings;
+    for (const k of Object.keys(DEFAULTS)){ const x = nOrNull(v[k]); st[k] = x == null ? (typeof DEFAULTS[k] === 'number' ? DEFAULTS[k] : null) : x; }
+    save('settings'); render(); toast('ההגדרות נשמרו');
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'w-type'){ const km = document.getElementById('w-km'); if (km) km.placeholder = ['run','walk','bike','swim'].includes(e.target.value) ? 'ק״מ' : 'ק״מ (לא חובה)'; }
+});
+
+/* ---------- boot ---------- */
+const cached = lsRead();
+if (cached){ S.settings = {...DEFAULTS, ...(cached.settings||{})}; S.days = cached.days || {}; }
+render();
+connect();
+// roll over to the new day if the page stays open past midnight
+let lastToday = TODAY();
+setInterval(() => { const t = TODAY(); if (t !== lastToday){ if (S.date === lastToday) S.date = t; lastToday = t; render(); } }, 60000);
+})();
+</script>

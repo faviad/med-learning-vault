@@ -80,6 +80,7 @@ section{margin-block:0 22px}
 .list li:first-child{border-top:0}
 .list .tag{font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap}
 .list .main{flex:1;min-width:0;overflow-wrap:anywhere}
+.kbtn{border:0;background:transparent;padding:4px 2px;text-decoration:underline dotted;text-underline-offset:3px;color:inherit}
 .list .x{border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:50%;font-size:1.1rem;line-height:1}
 .list .x:hover{background:var(--bg);color:var(--warn)}
 .empty{color:var(--muted);font-size:.9rem;padding-block:6px}
@@ -285,8 +286,76 @@ async function connect(){
   } catch {}
 }
 
+/* ---------- calorie estimate: Claude first, built-in table as fallback ---------- */
+const FOODS = [
+  [/סלט ביצים/,250,10],[/קוגל ירושלמי|קיגל ירושלמי|לוקשן קוגל/,350,4],[/טשולנט|חמין|צ'ולנט/,600,30],[/קוגל|קיגל/,300,5],
+  [/קישקע|קישקה/,300,4],[/גפילטע|דג ממולא/,150,12],[/קרעפלעך|קרפלך/,60,3],[/מרק עוף|מרק/,150,8],
+  [/שקשוקה/,350,18],[/חביתה|חביתות/,180,12],[/ביצה|ביצים/,75,6],[/טונה/,180,30],
+  [/חלה|חלות/,200,6],[/פיתה|פיתות/,250,8],[/לחמני(?:ה|ות)/,200,6],[/בורקס/,350,6],[/פיצה/,280,12],[/לחם/,80,3],
+  [/שניצל|שניצלים/,300,22],[/שווארמה|שוארמה/,700,40],[/המבורגר/,550,30],[/קציצ(?:ה|ות)/,120,8],[/חזה עוף|פרגית|כרעיים|עוף/,280,30],[/בשר|סטייק|צלי/,350,30],[/סלמון|אמנון|הרינג|דג/,250,25],
+  [/אורז/,200,4],[/פסטה|ספגטי|מקרוני|אטריות/,350,12],[/פתיתים/,300,9],[/פירה|צ'יפס|ציפס|תפוחי אדמה|תפו"א/,250,4],
+  [/חומוס/,250,8],[/טחינה/,180,5],[/פלאפל/,60,2],[/סלט|ירקות|מלפפון|עגבני/,70,2],
+  [/קוטג'|קוטג|גבינה לבנה/,120,14],[/גבינה צהובה|צהובה/,70,5],[/יוגורט|מעדן|דנונה|יופלה/,150,6],
+  [/רוגעלך|רוגלך/,110,1.5],[/עוגי(?:ה|ות)/,80,1],[/עוגה|עוגת/,350,5],[/במבה/,500,13],[/ביסלי/,480,10],[/שוקולד/,250,3],[/גלידה/,250,4],
+  [/דגני בוקר|קורנפלקס|גרנולה/,250,8],[/קרקר|פריכי/,30,1],[/תפוח|בננה|אגס|תפוז|פרי|ענבים|אבטיח/,90,1],
+  [/קולה|ספרייט|פאנטה|מוגז/,140,0],[/מיץ/,120,0],[/בירה/,150,1],[/יין/,120,0],[/ליקר|וודקה|ויסקי|משקה חריף|לחיים|שנאפס/,100,0],[/קפה|הפוך|קפוצ'ינו/,60,3],[/תה/,20,0]
+];
+const QTY = {'חצי':0.5,'אחד':1,'אחת':1,'שתי':2,'שני':2,'שתיים':2,'שניים':2,'זוג':2,'שלוש':3,'שלושה':3,'ארבע':4,'ארבעה':4,'חמש':5,'חמישה':5,'כמה':3};
+function localEstimate(text){
+  let t = ' ' + text + ' ', kcal = 0, protein = 0, hits = 0;
+  for (const [re, k, p] of FOODS){
+    const g = new RegExp(re.source, 'g'); let m;
+    while ((m = g.exec(t))){
+      const before = t.slice(Math.max(0, m.index - 14), m.index);
+      // a quantity right before the food, with at most one unit word between ("2 פרוסות חלה", "חצי פיתה")
+      const q = before.match(/(\d+(?:\.\d+)?)\s*(?:[^\d\s]+\s+)?$/) || before.match(/(?:^|[\sו])(חצי|אחד|אחת|שתיים|שניים|שתי|שני|זוג|שלושה|שלוש|ארבעה|ארבע|חמישה|חמש|כמה)\s+(?:[^\s]+\s+)?$/);
+      const n = q ? (QTY[q[1]] ?? Math.min(20, parseFloat(q[1]))) : 1;
+      kcal += k * n; protein += p * n; hits++;
+      const from = q ? m.index - before.length + q.index : m.index, to = m.index + m[0].length;
+      t = t.slice(0, from) + ' '.repeat(to - from) + t.slice(to);
+      g.lastIndex = to;
+    }
+  }
+  return { kcal: Math.round(kcal), protein: Math.round(protein), hits };
+}
+let samplerP = null;
+function sampler(){ return samplerP || (samplerP = (window.claude?.use ? claude.use('sample') : Promise.resolve(null)).catch(() => null)); }
+async function estimateMeal(k, id, text, autoProtein){
+  const find = () => (S.days[k]?.meals || []).find(m => m.id === id);
+  const fallback = msg => { const m = find(); if (!m) return; m.est = m.kcal ? 'local' : 'unknown'; save(k); render(true);
+    toast(m.kcal ? (msg || `~${fmt(m.kcal)} קק״ל לפי הטבלה. לחץ על המספר כדי לתקן.`) : 'לא הצלחתי להעריך. לחץ על ? והזן קלוריות.'); };
+  const sample = await sampler();
+  if (!sample) return fallback();
+  try {
+    const r = await sample.json(
+`You estimate calories for the food diary of an Israeli Hasidic man who is trying to lose his belly.
+He wrote in free text (usually Hebrew, maybe Yiddish words) what he ate. Split it into items and estimate each one.
+If the portion is not given, assume a typical Israeli / Haredi home portion. Know Shabbos and Hasidic foods (cholent, kugel, yerushalmi kugel, kishke, gefilte fish, challah, kreplach, herring, rugelach, l'chaim drinks).
+Return ONLY JSON, no prose:
+{"items":[{"name":"short Hebrew name with portion","kcal":number,"protein":grams}],"kcal":total_number,"protein":total_grams,"quip":"one short warm self-deprecating Hebrew joke about this meal in Hasidic flavor, at most 12 words, never mocking religion"}
+If the text is not food at all, return {"items":[],"kcal":0,"protein":0,"quip":"a short joke about that"}.
+What he ate: ${JSON.stringify(text)}`, { modelTier:'quick' });
+    const m = find(); if (!m) return;
+    const items = Array.isArray(r?.items) ? r.items.slice(0,10).map(i => ({ n:String(i?.name ?? '').slice(0,50), k:Math.round(n0(i?.kcal)) })) : [];
+    const total = Math.round(n0(r?.kcal) || items.reduce((a,i) => a + i.k, 0));
+    m.kcal = total; if (autoProtein) m.protein = Math.round(n0(r?.protein)); m.est = 'ai';
+    if (items.length) m.items = items;
+    save(k); render(true);
+    const quip = String(r?.quip ?? '').slice(0,140);
+    toast(`~${fmt(total)} קק״ל${quip ? ' · ' + quip : ''}`);
+  } catch(e){
+    const c = e && e.code;
+    fallback(c === 'not_granted' ? 'בלי אישור ל־Claude: הערכה לפי הטבלה המובנית.' : c === 'rate_limited' ? 'יותר מדי בקשות. בינתיים הערכה לפי הטבלה.' : null);
+  }
+}
+function saveK(id){
+  const el = document.getElementById('ek'), m = day(S.date).meals.find(x => x.id === id);
+  if (m && el){ m.kcal = Math.max(0, Math.round(n0(el.value))); m.est = null; delete m.items; save(S.date); }
+  S.editing = null; render(true);
+}
+
 /* ---------- errors: show them instead of failing silently ---------- */
-const VERSION = 6;
+const VERSION = 7;
 function showError(e){
   const msg = (e && (e.message || e.code || e.reason)) || String(e);
   S.note = 'תקלה: ' + msg; try { toast('משהו נתקע: ' + msg); } catch {} renderStatus();
@@ -316,7 +385,7 @@ const TABS = [['today','היום'],['train','אימונים'],['progress','הת�
 let pendingRender = false;
 function typing(){ const a = document.activeElement; return a && a.closest && a.closest('#view') && /INPUT|SELECT|TEXTAREA/.test(a.tagName); }
 function softRender(){ if (typing()) { pendingRender = true; return; } render(true); }
-document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender && !typing()){ pendingRender = false; render(true); } }, 0));
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender && !typing()){ pendingRender = false; render(true); } }, 400));
 function render(keep){
   const kept = {};
   if (keep) document.querySelectorAll('#view input[id], #view select[id]').forEach(el => { if (el.value) kept[el.id] = el.value; });
@@ -384,16 +453,19 @@ function viewToday(){
           <div class="meter"><i style="width:${pp*100}%;background:var(--move)"></i></div></div>
       </div>
       ${s.burn ? `<p class="small muted" style="margin:0 0 10px">נשרפו באימונים כ־<span class="num">${fmt(s.burn)}</span> קק״ל · מאזן נטו <span class="num">${fmt(s.kcal - s.burn)}</span></p>` : ''}
-      ${d.meals.length ? `<ul class="list">${d.meals.map(m => `<li><span class="tag">${MEALS[m.meal]||''}</span><span class="main">${esc(m.name)}</span>
-        <span class="num small">${fmt(n0(m.kcal))}${m.protein?` · ${fmt(n0(m.protein))}ג׳`:''}</span>
+      ${d.meals.length ? `<ul class="list">${d.meals.map(m => `<li><span class="tag">${MEALS[m.meal]||''}</span><span class="main">${esc(m.name)}${m.items && m.items.length > 1 ? `<span class="small muted" style="display:block">${m.items.map(i => `${esc(i.n)} ${fmt(n0(i.k))}`).join(' · ')}</span>` : ''}</span>
+        ${S.editing === m.id ? `<input id="ek" type="number" inputmode="numeric" min="0" value="${n0(m.kcal)}" style="width:76px" aria-label="קלוריות"><button class="chip" data-act="savek" data-id="${m.id}">שמור</button>`
+        : m.est === 'pending' ? `<span class="small muted">מחשב…</span>`
+        : `<button class="num small kbtn" data-act="editk" data-id="${m.id}" title="לחץ לתיקון">${m.est ? '~' : ''}${m.kcal || m.est !== 'unknown' ? fmt(n0(m.kcal)) : '?'}${m.protein?` · ${fmt(n0(m.protein))}ג׳`:''}</button>`}
         <button class="x" data-act="delmeal" data-id="${m.id}" aria-label="מחק ${esc(m.name)}">×</button></li>`).join('')}</ul>`
         : `<p class="empty">עוד לא נרשם אוכל. או שצמת, או שאתה מסתיר משהו. הוסף למטה, או בחר מהקיצורים.</p>`}
       <form class="add" data-form="meal">
         ${recent.length ? `<div class="quick">${recent.map((m,i) => `<button type="button" class="chip" data-act="requick" data-i="${i}">${esc(m.name)} · <span class="num">${fmt(n0(m.kcal))}</span></button>`).join('')}</div>` : ''}
-        <input id="m-name" name="name" placeholder="מה אכלת? אפשר להודות, זה נשאר בינינו" autocomplete="off" enterkeyhint="done">
+        <input id="m-name" name="name" placeholder="מה אכלת? כתוב חופשי, אפשר להודות" autocomplete="off" enterkeyhint="done" maxlength="200">
+        <p class="small muted" style="margin:-2px 0 0">למשל: "2 פרוסות חלה עם טונה, סלט וקפה". הקלוריות מחושבות אוטומטית. יודע את המספר? כתוב אותו.</p>
         <div class="row">
-          <input id="m-kcal" name="kcal" type="number" inputmode="numeric" min="0" placeholder="קלוריות">
-          <input id="m-prot" name="protein" type="number" inputmode="decimal" min="0" placeholder="חלבון (ג׳)">
+          <input id="m-kcal" name="kcal" type="number" inputmode="numeric" min="0" placeholder="קק״ל (אוטומטי)">
+          <input id="m-prot" name="protein" type="number" inputmode="decimal" min="0" placeholder="חלבון (אוטומטי)">
           <select id="m-meal" name="meal">${Object.entries(MEALS).map(([k,l]) => `<option value="${k}" ${k===guessMeal()?'selected':''}>${l}</option>`).join('')}</select>
         </div>
         <button type="button" class="btn" data-act="submit">הוסף ארוחה</button>
@@ -712,6 +784,8 @@ document.addEventListener('click', e => {
     toast(`נוסף: ${m.name}`);
   }
   else if (a === 'submit'){ const f = b.closest('form[data-form]'); if (f) handleForm(f); }
+  else if (a === 'editk'){ S.editing = b.dataset.id; render(true); setTimeout(() => { const el = document.getElementById('ek'); el && (el.focus(), el.select()); }, 0); }
+  else if (a === 'savek'){ saveK(b.dataset.id); }
   else if (a === 'undo'){ const f = undoFn; undoFn = null; $('#toast').hidden = true; f && f(); }
 });
 // The viewer frame can block real form submission, so forms are handled from button clicks and Enter.
@@ -719,6 +793,7 @@ document.addEventListener('submit', e => { const f = e.target.closest('form[data
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.isComposing) return;
   const f = e.target.closest && e.target.closest('form[data-form]');
+  if (e.target.id === 'ek'){ e.preventDefault(); saveK(S.editing); return; }
   if (f && e.target.tagName === 'INPUT'){ e.preventDefault(); handleForm(f); }
 });
 function handleForm(f){ try { handleFormInner(f); } catch(e){ showError(e); } }
@@ -726,8 +801,12 @@ function handleFormInner(f){
   const v = Object.fromEntries(new FormData(f).entries()), kind = f.dataset.form;
   if (kind === 'meal'){
     if (!(v.name||'').trim()){ toast('כתוב מה אכלת. אפשר גם ללחוץ על אחד הקיצורים.'); document.getElementById('m-name')?.focus(); return; }
-    day(S.date).meals.push({ id:uid(), name:v.name.trim().slice(0,120), kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal });
-    save(S.date); render(); toast('נרשם. לפחות אתה כן.'); document.getElementById('m-name')?.focus();
+    const name = v.name.trim().slice(0,200), auto = String(v.kcal ?? '').trim() === '', autoP = String(v.protein ?? '').trim() === '';
+    const meal = { id:uid(), name, kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal };
+    if (auto){ const loc = localEstimate(name); meal.kcal = loc.kcal; if (autoP) meal.protein = loc.protein; meal.est = 'pending'; }
+    day(S.date).meals.push(meal);
+    save(S.date); render(); toast(auto ? 'נרשם. מחשב קלוריות…' : 'נרשם. לפחות אתה כן.');
+    if (auto) estimateMeal(S.date, meal.id, name, autoP);
   } else if (kind === 'work'){
     if (!n0(v.min)){ toast('כמה דקות? בלי דקות אין אימון.'); document.getElementById('w-min')?.focus(); return; }
     day(S.date).workouts.push({ id:uid(), type:v.type, min:n0(v.min), km:n0(v.km), note:(v.note||'').trim().slice(0,120) });

@@ -367,13 +367,13 @@ function viewToday(){
         : `<p class="empty">עוד לא נרשם אוכל. או שצמת, או שאתה מסתיר משהו. הוסף למטה, או בחר מהקיצורים.</p>`}
       <form class="add" data-form="meal">
         ${recent.length ? `<div class="quick">${recent.map((m,i) => `<button type="button" class="chip" data-act="requick" data-i="${i}">${esc(m.name)} · <span class="num">${fmt(n0(m.kcal))}</span></button>`).join('')}</div>` : ''}
-        <input id="m-name" name="name" placeholder="מה אכלת? אפשר להודות, זה נשאר בינינו" required autocomplete="off">
+        <input id="m-name" name="name" placeholder="מה אכלת? אפשר להודות, זה נשאר בינינו" autocomplete="off" enterkeyhint="done">
         <div class="row">
           <input id="m-kcal" name="kcal" type="number" inputmode="numeric" min="0" placeholder="קלוריות">
           <input id="m-prot" name="protein" type="number" inputmode="decimal" min="0" placeholder="חלבון (ג׳)">
           <select id="m-meal" name="meal">${Object.entries(MEALS).map(([k,l]) => `<option value="${k}" ${k===guessMeal()?'selected':''}>${l}</option>`).join('')}</select>
         </div>
-        <button class="btn">הוסף ארוחה</button>
+        <button type="button" class="btn" data-act="submit">הוסף ארוחה</button>
       </form>
     </div>
   </section>
@@ -419,11 +419,11 @@ function workoutForm(){
   return `<form class="add" data-form="work">
     <div class="row">
       <select id="w-type" name="type" data-act="wtype">${Object.entries(WORKOUTS).map(([k,v]) => `<option value="${k}">${v.l}</option>`).join('')}</select>
-      <input id="w-min" name="min" type="number" inputmode="numeric" min="1" placeholder="דקות" required>
+      <input id="w-min" name="min" type="number" inputmode="numeric" min="1" placeholder="דקות">
       <input id="w-km" name="km" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ק״מ">
     </div>
     <input id="w-note" name="note" placeholder="הערה (לא חובה): אינטרוולים, דופק, איך הרגיש" autocomplete="off">
-    <button class="btn">הוסף אימון</button>
+    <button type="button" class="btn" data-act="submit">הוסף אימון</button>
   </form>`;
 }
 
@@ -610,7 +610,7 @@ function viewProgress(){
         <label class="f">היקף מותניים (ס״מ)<input id="b-waist" name="waist" type="number" inputmode="decimal" step="0.1" min="40" max="200" value="${td.waist ?? ''}" placeholder="${wNow ?? 'למשל 98'}"></label>
         <label class="f">משקל (ק״ג)<input id="b-weight" name="weight" type="number" inputmode="decimal" step="0.1" min="30" max="300" value="${td.weight ?? ''}" placeholder="${kgNow ?? 'למשל 86'}"></label>
       </div>
-      <button class="btn">שמור מדידה</button>
+      <button type="button" class="btn" data-act="submit">שמור מדידה</button>
     </form>
   </section>
   <section>
@@ -650,7 +650,7 @@ function viewSettings(){
         <div class="row">${f('weightStart','משקל בהתחלה',st.weightStart,'0.1')}${f('weightGoal','יעד משקל',st.weightGoal,'0.1')}</div>
         <p class="small muted" style="margin:0">טיפ: יעד מותניים טוב הוא חצי מהגובה. בגובה 176 המטרה היא 88 ס״מ, ולא, את הקאפאטע לא מודדים. ירידה של 0.5–1 ס״מ בשבועיים היא קצב מצוין.</p>
       </div></section>
-    <button class="btn">שמור הגדרות</button>
+    <button type="button" class="btn" data-act="submit">שמור הגדרות</button>
   </form>
   <section style="margin-top:22px"><div class="sec-h"><h2>איך זה עובד</h2></div>
     <div class="panel small" style="display:grid;gap:6px">
@@ -688,18 +688,24 @@ document.addEventListener('click', e => {
     day(S.date).meals.push({ id:uid(), name:m.name, kcal:m.kcal, protein:m.protein, meal }); save(S.date); render();
     toast(`נוסף: ${m.name}`);
   }
+  else if (a === 'submit'){ const f = b.closest('form[data-form]'); if (f) handleForm(f); }
   else if (a === 'undo'){ const f = undoFn; undoFn = null; $('#toast').hidden = true; f && f(); }
 });
-document.addEventListener('submit', e => {
-  const f = e.target.closest('form[data-form]'); if (!f) return;
-  e.preventDefault();
+// The viewer frame can block real form submission, so forms are handled from button clicks and Enter.
+document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); handleForm(f); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  const f = e.target.closest && e.target.closest('form[data-form]');
+  if (f && e.target.tagName === 'INPUT'){ e.preventDefault(); handleForm(f); }
+});
+function handleForm(f){
   const v = Object.fromEntries(new FormData(f).entries()), kind = f.dataset.form;
   if (kind === 'meal'){
-    if (!v.name.trim()) return;
+    if (!(v.name||'').trim()){ toast('כתוב מה אכלת. אפשר גם ללחוץ על אחד הקיצורים.'); document.getElementById('m-name')?.focus(); return; }
     day(S.date).meals.push({ id:uid(), name:v.name.trim().slice(0,120), kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal });
     save(S.date); render(); toast('נרשם. לפחות אתה כן.'); document.getElementById('m-name')?.focus();
   } else if (kind === 'work'){
-    if (!n0(v.min)) return;
+    if (!n0(v.min)){ toast('כמה דקות? בלי דקות אין אימון.'); document.getElementById('w-min')?.focus(); return; }
     day(S.date).workouts.push({ id:uid(), type:v.type, min:n0(v.min), km:n0(v.km), note:(v.note||'').trim().slice(0,120) });
     save(S.date); render(); toast('אימון נרשם. השלייקס מתרגשות.');
   } else if (kind === 'body'){
@@ -713,7 +719,7 @@ document.addEventListener('submit', e => {
     for (const k of Object.keys(DEFAULTS)){ const x = nOrNull(v[k]); st[k] = x == null ? (typeof DEFAULTS[k] === 'number' ? DEFAULTS[k] : null) : x; }
     save('settings'); render(); toast('ההגדרות נשמרו');
   }
-});
+}
 document.addEventListener('change', e => {
   if (e.target.id === 'w-type'){ const km = document.getElementById('w-km'); if (km) km.placeholder = ['run','walk','bike','swim'].includes(e.target.value) ? 'ק״מ' : 'ק״מ (לא חובה)'; }
 });

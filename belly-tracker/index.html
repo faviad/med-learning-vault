@@ -7,7 +7,7 @@
 /* Layout: one phone column; a sticky date bar on top, a fixed tab bar at the bottom, sections stacked by what you log most often (water, food, training). The tape measure is the signature element. */
 :root{
   --bg:#F3F5F2; --surface:#FFFFFF; --line:#DCE3DE; --ink:#15302A; --muted:#5E716B;
-  --tape:#E9B824; --tape-ink:#3A2E05; --water:#2C7BD0; --food:#D9822B; --move:#2E9D6A; --warn:#C8452F;
+  --tape:#E9B824; --tape-ink:#3A2E05; --water:#2C7BD0; --food:#D9822B; --move:#2E9D6A; --warn:#C8452F; --coat:#1E2228; --shirt:#FFFFFF; --skin:#F0C8A2; --beard:#6E4B2C; --strap:#B8352A;
   --font-display:"Secular One","Rubik","Arial Hebrew",system-ui,sans-serif;
   --font-body:"IBM Plex Sans Hebrew","Segoe UI","Arial Hebrew",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
@@ -15,10 +15,10 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
-  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; color-scheme:dark}}
+  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3A4350; --shirt:#E9EEEB; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
-  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; color-scheme:dark}
+  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3A4350; --shirt:#E9EEEB; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A; color-scheme:dark}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--font-body);font-size:15px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
@@ -108,7 +108,17 @@ label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--m
 .kpi{background:var(--bg);border-radius:10px;padding:10px}
 .kpi .v{font-family:var(--font-num);font-size:1.1rem}
 .kpi .k{font-size:.75rem;color:var(--muted)}
-.pashk{border:3px double var(--ink);border-radius:4px;background:var(--surface);padding:12px 14px;text-align:center;margin-block:0 18px}
+.pashk{border:3px double var(--ink);border-radius:4px;background:var(--surface);padding:10px 14px;margin-block:0 18px;display:flex;align-items:center;gap:12px}
+.pashk > div{flex:1;min-width:0;text-align:center}
+.pashk svg{flex:0 0 auto}
+.hi{display:flex;align-items:center;gap:8px}
+.hi svg{width:34px;height:34px;flex:0 0 auto}
+.brand{min-width:0}
+.brand h1{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:clamp(1.1rem,5.2vw,1.5rem)}
+.toast[hidden]{display:none}
+.brand h1 svg{width:30px;height:24px}
+.melke-row{display:flex;gap:14px;align-items:center;margin:0 0 14px}
+.melke-row > div{flex:1;min-width:0}
 .pashk .h{font-family:var(--font-display);font-size:.8rem;letter-spacing:.06em;color:var(--muted)}
 .pashk p{font-family:var(--font-display);font-size:1.12rem;line-height:1.4;margin:4px 0 0;text-wrap:balance}
 .pill{display:inline-block;font-size:.75rem;padding:2px 9px;border-radius:999px;font-weight:600}
@@ -136,7 +146,7 @@ nav.tabs button.on svg{color:var(--tape)}
 
 <div id="app" dir="rtl" lang="he">
   <header class="top">
-    <div class="brand"><h1>מעלקה בלי שלייקס</h1><span class="small muted" id="sub">מבצע הורדת השלייקס · אוכל · אימונים · מים</span></div>
+    <div class="brand"><h1><svg viewBox="0 0 40 30" aria-hidden="true"><ellipse cx="20" cy="24" rx="19" ry="4" fill="var(--coat)"/><path d="M8 24 L9.5 7 Q20 2 30.5 7 L32 24Z" fill="var(--coat)"/><rect x="9" y="18" width="22" height="3" fill="var(--muted)" opacity=".5"/></svg>מעלקה בלי שלייקס</h1><span class="small muted" id="sub">מבצע הורדת השלייקס · אוכל · אימונים · מים</span></div>
     <div class="datenav" id="datenav"></div>
   </header>
   <main id="view"><p class="muted">טוען…</p></main>
@@ -321,9 +331,9 @@ function viewToday(){
   const over = s.kcal > st.kcalGoal;
   const recent = quickList();
   return `${weekStrip()}
-  <div class="pashk" role="note"><div class="h">קול קורא מאת השלייקס</div><p>${esc(roast(s, st, S.date))}</p></div>
+  <div class="pashk" role="note">${melke(progressP(), 64)}<div><div class="h">קול קורא מאת השלייקס</div><p>${esc(roast(s, st, S.date))}</p></div></div>
   <section>
-    <div class="sec-h"><h2>מים (לא משקה)</h2><span class="small muted">יעד <span class="num">${fmt(st.waterGoal)}</span> מ״ל</span></div>
+    <div class="sec-h"><h2 class="hi">${ILL.becher}מים (לא משקה)</h2><span class="small muted">יעד <span class="num">${fmt(st.waterGoal)}</span> מ״ל</span></div>
     <div class="panel water">
       <div class="ring" role="img" aria-label="${fmt(s.water)} מתוך ${fmt(st.waterGoal)} מ״ל">
         <svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="48" fill="none" stroke="var(--line)" stroke-width="10"/>
@@ -342,7 +352,7 @@ function viewToday(){
   </section>
 
   <section>
-    <div class="sec-h"><h2>אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span> · עוד קיגל?</span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
+    <div class="sec-h"><h2 class="hi">${ILL.pot}אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span> · עוד קיגל?</span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="v">${fmt(s.kcal)} <span class="small muted">/ ${fmt(st.kcalGoal)}</span></div><div class="k">קלוריות</div>
@@ -369,7 +379,7 @@ function viewToday(){
   </section>
 
   <section>
-    <div class="sec-h"><h2>תהילים</h2><span class="small muted">ניקוד קלורי</span></div>
+    <div class="sec-h"><h2 class="hi">${ILL.book}תהילים</h2><span class="small muted">ניקוד קלורי</span></div>
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="v">${fmt(s.teh)} <span class="small muted">פרקים</span></div><div class="k">${d.tehillimShuk?`מתוכם <span class="num">${d.tehillimShuk}</span> עם שאקלען`:'נאמרו היום'}</div></div>
@@ -387,7 +397,7 @@ function viewToday(){
   </section>
 
   <section>
-    <div class="sec-h"><h2>אימון</h2><button class="chip" data-act="tab" data-v="train">שבוע ואימונים ›</button></div>
+    <div class="sec-h"><h2 class="hi">${ILL.run}אימון</h2><button class="chip" data-act="tab" data-v="train">שבוע ואימונים ›</button></div>
     <div class="panel">
       ${workoutList(d)}
       ${workoutForm()}
@@ -429,7 +439,7 @@ function viewTrain(){
   const best = runs.reduce((a,x) => { const p = n0(x.w.min)/n0(x.w.km); return a==null||p<a?p:a; }, null);
   return `
   <section>
-    <div class="sec-h"><h2>השבוע</h2><span class="small muted">${fmtDate(ws)}–${fmtDate(addDays(ws,6))}</span></div>
+    <div class="sec-h"><h2 class="hi">${ILL.run}השבוע</h2><span class="small muted">${fmtDate(ws)}–${fmtDate(addDays(ws,6))}</span></div>
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="v">${fmt(min)} <span class="small muted">/ ${fmt(st.activeMinGoal)} דק׳</span></div><div class="k">דקות פעילות</div>
@@ -498,17 +508,64 @@ function lineChart(points, goal, unit){
   </svg>`;
 }
 
+/* ---------- illustrations ---------- */
+function progressP(){
+  const st = S.settings, w0 = st.waistStart ?? first('waist')?.v, wNow = latest('waist')?.v ?? w0, wGoal = st.waistGoal;
+  if (w0 && wNow && wGoal && w0 > wGoal) return Math.max(0, Math.min(1, (w0 - wNow) / (w0 - wGoal)));
+  if (wNow && st.height) return Math.max(0, Math.min(1, (0.65 - wNow/st.height) / 0.15));
+  return 0;
+}
+// Melke: belly width follows progress p (0 = start, 1 = goal). At the goal the shleikes come off and lie on the floor.
+function melke(p, w){
+  p = Math.max(0, Math.min(1, p || 0));
+  const hw = 20 + (1-p)*17, by = 104, bry = 22 + (1-p)*6, L = 60-hw, R = 60+hw;
+  const done = p >= 1, sweat = p < 0.3;
+  const btn = [0.3,0.55,0.8].map(f => `<circle cx="60" cy="${(by-bry+bry*2*f).toFixed(1)}" r="1.3" fill="var(--line)"/>`).join('');
+  return `<svg class="ill" viewBox="0 0 120 172" width="${w}" height="${Math.round(w*172/120)}" role="img" aria-label="מעלקה, ${done?'בלי שלייקס':'עם שלייקס'}">
+  <rect x="47" y="136" width="11" height="25" fill="var(--coat)"/><rect x="62" y="136" width="11" height="25" fill="var(--coat)"/>
+  <ellipse cx="50" cy="162" rx="9" ry="4" fill="var(--coat)"/><ellipse cx="70" cy="162" rx="9" ry="4" fill="var(--coat)"/>
+  <path d="M${L-6} 126 Q${L-14} 104 38 82 Q60 74 82 82 Q${R+14} 104 ${R+6} 126 L${R+4} 146 L${L-4} 146Z" fill="var(--coat)"/>
+  <ellipse cx="60" cy="${by}" rx="${hw-3}" ry="${bry}" fill="var(--shirt)" stroke="var(--line)" stroke-width="1"/>
+  ${btn}
+  <path d="M${L+5} ${by+bry-6} l0 18 M${L+8} ${by+bry-5} l0 16 M${R-5} ${by+bry-6} l0 18 M${R-8} ${by+bry-5} l0 16" stroke="var(--shirt)" stroke-width="1.4"/>
+  ${done ? '' : `<path d="M51 80 Q${(60-hw*0.75).toFixed(1)} ${by} ${(60-hw*0.35).toFixed(1)} ${by+bry+2}" stroke="var(--strap)" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+  <path d="M69 80 Q${(60+hw*0.75).toFixed(1)} ${by} ${(60+hw*0.35).toFixed(1)} ${by+bry+2}" stroke="var(--strap)" stroke-width="3.6" fill="none" stroke-linecap="round"/>`}
+  <path d="M40 84 Q${L-12} 104 ${L-9} 124" stroke="var(--coat)" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M80 84 Q${R+12} 104 ${R+9} 124" stroke="var(--coat)" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="${L-9}" cy="127" r="4.5" fill="var(--skin)"/><circle cx="${R+9}" cy="127" r="4.5" fill="var(--skin)"/>
+  <circle cx="60" cy="53" r="14" fill="var(--skin)"/>
+  <path d="M46 54 Q45 79 60 84 Q75 79 74 54 Q68 63 60 63 Q52 63 46 54Z" fill="var(--beard)"/>
+  <path d="M55 67 Q60 ${done?72:69} 65 67" stroke="var(--skin)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M47 45 q-4 5 0 9 q4 4 0 9 q-3 3 0 6" stroke="var(--beard)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M73 45 q4 5 0 9 q-4 4 0 9 q3 3 0 6" stroke="var(--beard)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <circle cx="54" cy="51" r="4.2" fill="none" stroke="var(--coat)" stroke-width="1.3"/><circle cx="66" cy="51" r="4.2" fill="none" stroke="var(--coat)" stroke-width="1.3"/>
+  <path d="M58.2 51 h3.6" stroke="var(--coat)" stroke-width="1.3"/>
+  <circle cx="54" cy="51" r="1.2" fill="var(--coat)"/><circle cx="66" cy="51" r="1.2" fill="var(--coat)"/>
+  <ellipse cx="60" cy="40" rx="25" ry="4.5" fill="var(--coat)"/>
+  <path d="M44 40 L45.5 23 Q60 17 74.5 23 L76 40Z" fill="var(--coat)"/>
+  <rect x="45" y="34" width="30" height="3" fill="var(--muted)" opacity=".45"/>
+  ${sweat ? '<path d="M80 50 q-3 5 0 7 q3 -2 0 -7Z" fill="var(--water)"/>' : ''}
+  ${done ? '<path d="M84 166 q8 -6 14 0 t14 0 M86 169 q8 -5 14 0 t12 -1" stroke="var(--strap)" stroke-width="3" fill="none" stroke-linecap="round"/>' : ''}
+  </svg>`;
+}
+const ILL = {
+  becher:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 7h24l-2.6 17.5a9.4 9.4 0 0 1-18.8 0Z" fill="var(--tape)"/><path d="M15 11h18l-2 13a7 7 0 0 1-14 0Z" fill="var(--water)" opacity=".85"/><path d="M14 15h20" stroke="var(--tape-ink)" stroke-width=".8" opacity=".5"/><rect x="22" y="33" width="4" height="7" fill="var(--tape)"/><ellipse cx="24" cy="41.5" rx="9" ry="2.6" fill="var(--tape)"/></svg>`,
+  pot:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 10 q-2 -3 0 -6 M24 11 q-2 -3 0 -7 M31 10 q-2 -3 0 -6" stroke="var(--muted)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M8 20h32v14a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6Z" fill="var(--coat)"/><ellipse cx="24" cy="19" rx="17" ry="4" fill="var(--muted)"/><rect x="21" y="12.5" width="6" height="3.5" rx="1.5" fill="var(--muted)"/><path d="M8 24H4M40 24h4" stroke="var(--coat)" stroke-width="3" stroke-linecap="round"/><path d="M12 30h24" stroke="var(--food)" stroke-width="2" opacity=".8"/></svg>`,
+  book:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="11" y="6" width="27" height="36" rx="2.5" fill="var(--strap)"/><rect x="11" y="6" width="4" height="36" rx="1.5" fill="var(--coat)" opacity=".5"/><rect x="18" y="13" width="15" height="9" rx="1" fill="none" stroke="var(--tape)" stroke-width="1"/><text x="25.5" y="20.3" text-anchor="middle" font-size="6.2" fill="var(--tape)" font-family="var(--font-display)">תהלים</text><path d="M38 9v30" stroke="var(--shirt)" stroke-width="1.5"/></svg>`,
+  run:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 20h7M3 26h8M6 32h6" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"/><path d="M24 31 L18 40 L13 39 M27 32 L32 39 L37 36" stroke="var(--coat)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M25 18 L15 34 L32 33 L30 19Z" fill="var(--coat)"/><path d="M26 22 L20 28 M29 22 L35 25" stroke="var(--coat)" stroke-width="2.6" stroke-linecap="round"/><circle cx="28" cy="13" r="4.5" fill="var(--skin)"/><path d="M24.3 14 Q25 20 28 20 Q31 20 31.7 14 Q28 16 24.3 14Z" fill="var(--beard)"/><ellipse cx="28" cy="9" rx="7" ry="1.7" fill="var(--coat)"/><path d="M23.5 9 L24.5 3.5 Q28 2 31.5 3.5 L32.5 9Z" fill="var(--coat)"/><path d="M22 34 l-1 5 M24 34 l0 5" stroke="var(--shirt)" stroke-width="1"/></svg>`
+};
+
 function shleikes(w0, wNow, wGoal, whr){
   let p = null;
   if (w0 && wNow && wGoal && w0 > wGoal) p = Math.max(0, Math.min(1, (w0 - wNow) / (w0 - wGoal)));
   else if (whr) p = Math.max(0, Math.min(1, (0.65 - whr) / 0.15));
-  if (p == null) return '<p class="small muted" style="margin:0 0 12px">הגדר מותניים בהתחלה ויעד (בהגדרות) כדי לדעת מה מצב השלייקס.</p>';
+  if (p == null) return `<div class="melke-row">${melke(0,104)}<div><p class="small muted" style="margin:0">הגדר מותניים בהתחלה ויעד (בהגדרות) כדי לדעת מה מצב השלייקס. בינתיים מעלקה במצב התחלתי.</p></div></div>`;
   const lines = [[0.1,'השלייקס עובדות שעות נוספות. בלעדיהן המכנסיים בשביתה.'],[0.4,'השלייקס כבר נושמות.'],[0.7,'הגארטל מתחיל לחשוד שמשהו קורה.'],
     [1,'עוד קצת, והשלייקס הולכות לגניזה.'],[2,'מזל טוב! מעלקה הוריד את השלייקס.']];
   const line = lines.find(([t]) => p < t)?.[1] || lines[4][1];
-  return `<div style="margin:0 0 14px"><p style="margin:0 0 8px;font-family:var(--font-display);font-size:1.05rem">${line}</p>
+  return `<div class="melke-row">${melke(p,104)}<div><p style="margin:0 0 8px;font-family:var(--font-display);font-size:1.05rem">${line}</p>
     <div class="meter" style="height:12px"><i style="width:${(p*100).toFixed(0)}%;background:var(--move)"></i></div>
-    <div class="small muted" style="display:flex;justify-content:space-between;margin-top:4px"><span>מתוחות</span><span>בגניזה</span></div></div>`;
+    <div class="small muted" style="display:flex;justify-content:space-between;margin-top:4px"><span>מתוחות</span><span>בגניזה</span></div></div></div>`;
 }
 
 function viewProgress(){

@@ -1,4 +1,4 @@
-<title>יומן הכרס</title>
+<title>מעלקה בלי שלייקס</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,6 +108,9 @@ label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--m
 .kpi{background:var(--bg);border-radius:10px;padding:10px}
 .kpi .v{font-family:var(--font-num);font-size:1.1rem}
 .kpi .k{font-size:.75rem;color:var(--muted)}
+.pashk{border:3px double var(--ink);border-radius:4px;background:var(--surface);padding:12px 14px;text-align:center;margin-block:0 18px}
+.pashk .h{font-family:var(--font-display);font-size:.8rem;letter-spacing:.06em;color:var(--muted)}
+.pashk p{font-family:var(--font-display);font-size:1.12rem;line-height:1.4;margin:4px 0 0;text-wrap:balance}
 .pill{display:inline-block;font-size:.75rem;padding:2px 9px;border-radius:999px;font-weight:600}
 .pill.good{background:color-mix(in srgb,var(--move) 18%,transparent);color:var(--move)}
 .pill.mid{background:color-mix(in srgb,var(--food) 20%,transparent);color:var(--food)}
@@ -133,7 +136,7 @@ nav.tabs button.on svg{color:var(--tape)}
 
 <div id="app" dir="rtl" lang="he">
   <header class="top">
-    <div class="brand"><h1>יומן הכרס</h1><span class="small muted" id="sub">אוכל · אימונים · מים · היקף מותניים</span></div>
+    <div class="brand"><h1>מעלקה בלי שלייקס</h1><span class="small muted" id="sub">מבצע הורדת השלייקס · אוכל · אימונים · מים</span></div>
     <div class="datenav" id="datenav"></div>
   </header>
   <main id="view"><p class="muted">טוען…</p></main>
@@ -170,8 +173,34 @@ const nOrNull = v => { if (v === '' || v == null) return null; const x = parseFl
 const fmt = (v,d=0) => Number(v).toLocaleString('he-IL',{maximumFractionDigits:d,minimumFractionDigits:0});
 
 const WORKOUTS = { run:{l:'ריצה',met:9.8}, walk:{l:'הליכה',met:3.8}, strength:{l:'כוח',met:5}, hiit:{l:'HIIT',met:8},
-  bike:{l:'אופניים',met:7.5}, swim:{l:'שחייה',met:7}, core:{l:'בטן / ליבה',met:3.8}, yoga:{l:'יוגה / מתיחות',met:2.5}, other:{l:'אחר',met:5} };
-const MEALS = { b:'בוקר', l:'צהריים', d:'ערב', s:'נשנוש' };
+  dance:{l:'ריקוד חסידי',met:5.5}, bike:{l:'אופניים',met:7.5}, swim:{l:'שחייה',met:7}, core:{l:'בטן / ליבה',met:3.8}, yoga:{l:'מתיחות',met:2.5}, other:{l:'אחר',met:5} };
+const MEALS = { b:'בוקר', l:'צהריים', d:'ערב', s:'נשנוש', k:'קידוש / טיש' };
+const SHABBOS = [ {name:'טשולנט (קערה)',kcal:600,protein:30,meal:'l'}, {name:'קוגל ירושלמי (חתיכה)',kcal:350,protein:4,meal:'k'},
+  {name:'קוגל תפוחי אדמה',kcal:300,protein:5,meal:'k'}, {name:'חלה (פרוסה עבה)',kcal:200,protein:6,meal:'d'},
+  {name:'גפילטע פיש',kcal:150,protein:12,meal:'d'}, {name:'רוגעלך (2)',kcal:220,protein:3,meal:'s'},
+  {name:'משקה בקידוש',kcal:100,protein:0,meal:'k'}, {name:'סלט ביצים (מנה)',kcal:250,protein:10,meal:'k'} ];
+function quickList(){
+  const r = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].meals.slice().reverse().forEach(m => {
+    if (r.length < 6 && !r.find(x => x.name === m.name)) r.push(m); }));
+  SHABBOS.forEach(m => { if (r.length < 10 && !r.find(x => x.name === m.name)) r.push(m); });
+  return r;
+}
+function roast(s, st, k){
+  const dow = parseKey(k).getDay(), isToday = k === TODAY();
+  if (!s.nMeals && !s.nW && !s.water){
+    if (dow === 6) return 'שבת. לא רושמים כלום. אבל הכרס זוכרת הכל.';
+    if (dow === 5) return 'ערב שבת. הטשולנט כבר על הפלטה, והוא יודע מה עשית בשבוע שעבר.';
+    return isToday ? 'בוקר טוב מעלקה. השלייקס כבר מתוחות. יום חדש להקל עליהן.' : 'יום ריק ביומן. או שהיה צום, או שהיה קידוש ושכחנו לרשום.';
+  }
+  if (s.kcal > st.kcalGoal + 400) return 'זה לא היה עוד קיגל אחד. זה היה עוד קיגל אחד, הרבה פעמים.';
+  if (s.kcal > st.kcalGoal) return 'עברת את יעד הקלוריות. השלייקס הגישו תלונה לוועד הבית.';
+  if (s.km >= 5) return `${fmt(s.km,1)} ק״מ ריצה. בשטיבל עוד מדברים על זה.`;
+  if (s.nW && s.water >= st.waterGoal) return 'אימון וגם מים. מי אתה ומה עשית עם מעלקה?';
+  if (s.nW) return 'היה אימון. הכרס עדיין פה, אבל היא כבר לחוצה.';
+  if (s.water >= st.waterGoal) return 'יעד המים הושג. שתית יותר מכל הקידושים של השנה ביחד.';
+  if (isToday && new Date().getHours() >= 14 && s.water < st.waterGoal/3) return 'כמעט לא שתית מים. ליקר בקידוש לא נחשב, מעלקה.';
+  return 'עוד אין אימון. הכרס שלך מגיעה לשטיבל חמש דקות לפניך.';
+}
 
 function latest(field, upTo){
   const ks = Object.keys(S.days).filter(k => S.days[k][field] != null && (!upTo || k <= upTo)).sort();
@@ -283,11 +312,11 @@ function viewToday(){
   const wp = Math.min(1, s.water / st.waterGoal), C = 2*Math.PI*48;
   const kp = Math.min(1, s.kcal / st.kcalGoal), pp = Math.min(1, s.protein / st.proteinGoal);
   const over = s.kcal > st.kcalGoal;
-  const recent = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].meals.slice().reverse().forEach(m => {
-    if (recent.length < 8 && !recent.find(r => r.name === m.name)) recent.push(m); }));
+  const recent = quickList();
   return `${weekStrip()}
+  <div class="pashk" role="note"><div class="h">קול קורא מאת השלייקס</div><p>${esc(roast(s, st, S.date))}</p></div>
   <section>
-    <div class="sec-h"><h2>מים</h2><span class="small muted">יעד <span class="num">${fmt(st.waterGoal)}</span> מ״ל</span></div>
+    <div class="sec-h"><h2>מים (לא משקה)</h2><span class="small muted">יעד <span class="num">${fmt(st.waterGoal)}</span> מ״ל</span></div>
     <div class="panel water">
       <div class="ring" role="img" aria-label="${fmt(s.water)} מתוך ${fmt(st.waterGoal)} מ״ל">
         <svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="48" fill="none" stroke="var(--line)" stroke-width="10"/>
@@ -300,13 +329,13 @@ function viewToday(){
         <button class="chip primary" data-act="water" data-ml="500">+ בקבוק 500</button>
         <button class="chip" data-act="water" data-ml="750">+ 750</button>
         <button class="chip ghost" data-act="water" data-ml="-250" ${s.water?'':'disabled'}>− 250</button>
-        <span class="small muted" style="flex-basis:100%">${s.water>=st.waterGoal?'עמדת ביעד המים היום':`נשארו <span class="num">${fmt(st.waterGoal-s.water)}</span> מ״ל`}</span>
+        <span class="small muted" style="flex-basis:100%">${s.water>=st.waterGoal?'יעד המים הושג. הכרס בהלם.':`נשארו <span class="num">${fmt(st.waterGoal-s.water)}</span> מ״ל. לחיים, במים.`}</span>
       </div>
     </div>
   </section>
 
   <section>
-    <div class="sec-h"><h2>אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span></span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
+    <div class="sec-h"><h2>אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span> · עוד קיגל?</span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="v">${fmt(s.kcal)} <span class="small muted">/ ${fmt(st.kcalGoal)}</span></div><div class="k">קלוריות</div>
@@ -318,10 +347,10 @@ function viewToday(){
       ${d.meals.length ? `<ul class="list">${d.meals.map(m => `<li><span class="tag">${MEALS[m.meal]||''}</span><span class="main">${esc(m.name)}</span>
         <span class="num small">${fmt(n0(m.kcal))}${m.protein?` · ${fmt(n0(m.protein))}ג׳`:''}</span>
         <button class="x" data-act="delmeal" data-id="${m.id}" aria-label="מחק ${esc(m.name)}">×</button></li>`).join('')}</ul>`
-        : `<p class="empty">עוד לא נרשם אוכל ${S.date===TODAY()?'היום':'ביום הזה'}. הוסף ארוחה למטה.</p>`}
+        : `<p class="empty">עוד לא נרשם אוכל. או שצמת, או שאתה מסתיר משהו. הוסף למטה, או בחר מהקיצורים.</p>`}
       <form class="add" data-form="meal">
         ${recent.length ? `<div class="quick">${recent.map((m,i) => `<button type="button" class="chip" data-act="requick" data-i="${i}">${esc(m.name)} · <span class="num">${fmt(n0(m.kcal))}</span></button>`).join('')}</div>` : ''}
-        <input id="m-name" name="name" placeholder="מה אכלת? למשל: חביתה ו־2 פרוסות לחם" required autocomplete="off">
+        <input id="m-name" name="name" placeholder="מה אכלת? אפשר להודות, זה נשאר בינינו" required autocomplete="off">
         <div class="row">
           <input id="m-kcal" name="kcal" type="number" inputmode="numeric" min="0" placeholder="קלוריות">
           <input id="m-prot" name="protein" type="number" inputmode="decimal" min="0" placeholder="חלבון (ג׳)">
@@ -349,7 +378,7 @@ function workoutList(d){
     <span class="main">${w.type==='run'&&w.km?`<span class="num">${fmt(n0(w.km),2)}</span> ק״מ · קצב <span class="num">${pace(n0(w.min),n0(w.km))}</span> · `:''}<span class="num">${fmt(n0(w.min))}</span> דק׳${w.note?` · ${esc(w.note)}`:''}</span>
     <span class="num small muted">~${fmt(burned(w,S.date))}</span>
     <button class="x" data-act="delwork" data-id="${w.id}" aria-label="מחק אימון">×</button></li>`).join('')}</ul>`
-    : `<p class="empty">אין אימון רשום. גם 20 דקות הליכה נחשבות.</p>`;
+    : `<p class="empty">אין אימון רשום. ריקוד בחתונה של בן דוד שלישי נחשב. גם הליכה לשטיבל, אם לוקחים את הדרך הארוכה.</p>`;
 }
 function workoutForm(){
   return `<form class="add" data-form="work">
@@ -402,7 +431,7 @@ function viewTrain(){
     <div class="sec-h"><h2>היסטוריה</h2></div>
     <div class="panel">${all.length ? `<ul class="list">${all.slice(0,30).map(({k,w}) => `<li><span class="tag">${fmtDate(k)}</span>
       <span class="main">${WORKOUTS[w.type]?.l||'אחר'} · <span class="num">${fmt(n0(w.min))}</span> דק׳${w.type==='run'&&w.km?` · <span class="num">${fmt(n0(w.km),2)}</span> ק״מ`:''}</span></li>`).join('')}</ul>`
-      : '<p class="empty">האימונים שתרשום יופיעו כאן, עם סיכום שבועי ושיאים.</p>'}</div>
+      : '<p class="empty">כאן יופיעו האימונים, השיאים והתירוצים. בינתיים רק התירוצים.</p>'}</div>
   </section>
   <p class="status" id="status"></p>`;
 }
@@ -444,6 +473,19 @@ function lineChart(points, goal, unit){
   </svg>`;
 }
 
+function shleikes(w0, wNow, wGoal, whr){
+  let p = null;
+  if (w0 && wNow && wGoal && w0 > wGoal) p = Math.max(0, Math.min(1, (w0 - wNow) / (w0 - wGoal)));
+  else if (whr) p = Math.max(0, Math.min(1, (0.65 - whr) / 0.15));
+  if (p == null) return '<p class="small muted" style="margin:0 0 12px">הגדר מותניים בהתחלה ויעד (בהגדרות) כדי לדעת מה מצב השלייקס.</p>';
+  const lines = [[0.1,'השלייקס עובדות שעות נוספות. בלעדיהן המכנסיים בשביתה.'],[0.4,'השלייקס כבר נושמות.'],[0.7,'הגארטל מתחיל לחשוד שמשהו קורה.'],
+    [1,'עוד קצת, והשלייקס הולכות לגניזה.'],[2,'מזל טוב! מעלקה הוריד את השלייקס.']];
+  const line = lines.find(([t]) => p < t)?.[1] || lines[4][1];
+  return `<div style="margin:0 0 14px"><p style="margin:0 0 8px;font-family:var(--font-display);font-size:1.05rem">${line}</p>
+    <div class="meter" style="height:12px"><i style="width:${(p*100).toFixed(0)}%;background:var(--move)"></i></div>
+    <div class="small muted" style="display:flex;justify-content:space-between;margin-top:4px"><span>מתוחות</span><span>בגניזה</span></div></div>`;
+}
+
 function viewProgress(){
   const st = S.settings, td = day(TODAY());
   const w0 = st.waistStart ?? first('waist')?.v, wNow = latest('waist')?.v ?? w0, wGoal = st.waistGoal;
@@ -467,9 +509,10 @@ function viewProgress(){
   let wDays=0, mDays=0, fDays=0; for (let i=0;i<14;i++){ const s = sums(addDays(TODAY(),-i)); if (s.water>=st.waterGoal) wDays++; if (s.nW) mDays++; if (s.nMeals && s.kcal<=st.kcalGoal) fDays++; }
   return `
   <section>
-    <div class="sec-h"><h2>היקף מותניים</h2>${w0 && wNow && w0!==wNow ? `<span class="small">${wNow<=w0?'ירדת':'עלית'} <span class="num">${fmt(Math.abs(w0-wNow),1)}</span> ס״מ</span>` : ''}</div>
+    <div class="sec-h"><h2>מד השלייקס</h2>${w0 && wNow && w0!==wNow ? `<span class="small">${wNow<=w0?'ירדת':'עלית'} <span class="num">${fmt(Math.abs(w0-wNow),1)}</span> ס״מ</span>` : ''}</div>
     <div class="panel">
-      ${tape || '<p class="empty">המדד הכי חשוב לכרס. מדוד סביב הבטן בגובה הטבור, בבוקר לפני אוכל, ורשום למטה.</p>'}
+      ${shleikes(w0, wNow, wGoal, whr)}
+      ${tape || '<p class="empty">בלי מדידה אין מבצע. מדוד סביב הבטן בגובה הטבור, בבוקר, לפני הטשולנט, ורשום למטה.</p>'}
       <div class="kpis">
         <div class="kpi"><div class="v">${wNow ? fmt(wNow,1) : '—'}</div><div class="k">ס״מ עכשיו</div></div>
         <div class="kpi"><div class="v">${wGoal && wNow ? fmt(Math.max(0,wNow-wGoal),1) : '—'}</div><div class="k">ס״מ ליעד</div></div>
@@ -523,12 +566,13 @@ function viewSettings(){
         <div class="row">${f('height','גובה (ס״מ)',st.height)}</div>
         <div class="row">${f('waistStart','מותניים בהתחלה',st.waistStart,'0.1')}${f('waistGoal','יעד מותניים',st.waistGoal,'0.1')}</div>
         <div class="row">${f('weightStart','משקל בהתחלה',st.weightStart,'0.1')}${f('weightGoal','יעד משקל',st.weightGoal,'0.1')}</div>
-        <p class="small muted" style="margin:0">טיפ: יעד מותניים טוב הוא חצי מהגובה (למשל 88 ס״מ לגובה 176). ירידה של 0.5–1 ס״מ בשבועיים היא קצב מצוין.</p>
+        <p class="small muted" style="margin:0">טיפ: יעד מותניים טוב הוא חצי מהגובה. בגובה 176 המטרה היא 88 ס״מ, ולא, את הקאפאטע לא מודדים. ירידה של 0.5–1 ס״מ בשבועיים היא קצב מצוין.</p>
       </div></section>
     <button class="btn">שמור הגדרות</button>
   </form>
   <section style="margin-top:22px"><div class="sec-h"><h2>איך זה עובד</h2></div>
     <div class="panel small" style="display:grid;gap:6px">
+      <div>מעלקה הוא אתה. המטרה: להגיע ליום שבו הגארטל נסגר והשלייקס הולכות לגניזה.</div>
       <div>שלוש הנקודות בכל יום בשבוע: <span style="color:var(--water)">●</span> יעד מים, <span style="color:var(--food)">●</span> בתוך יעד הקלוריות, <span style="color:var(--move)">●</span> היה אימון.</div>
       <div class="muted">הקלוריות שנשרפו הן הערכה לפי סוג האימון, משך ומשקל הגוף.</div>
       <p class="status" id="status" style="margin:0"></p>
@@ -551,10 +595,8 @@ document.addEventListener('click', e => {
     toast(a === 'delmeal' ? 'הארוחה נמחקה' : 'האימון נמחק', () => { day(k)[list].splice(idx,0,gone); save(k); render(); });
   }
   else if (a === 'requick'){
-    const recent = []; Object.keys(S.days).sort().reverse().forEach(k => S.days[k].meals.slice().reverse().forEach(m => {
-      if (recent.length < 8 && !recent.find(r => r.name === m.name)) recent.push(m); }));
-    const m = recent[Number(b.dataset.i)]; if (!m) return;
-    const meal = document.getElementById('m-meal')?.value || m.meal;
+    const m = quickList()[Number(b.dataset.i)]; if (!m) return;
+    const meal = m.meal || document.getElementById('m-meal')?.value || 's';
     day(S.date).meals.push({ id:uid(), name:m.name, kcal:m.kcal, protein:m.protein, meal }); save(S.date); render();
     toast(`נוסף: ${m.name}`);
   }
@@ -567,17 +609,17 @@ document.addEventListener('submit', e => {
   if (kind === 'meal'){
     if (!v.name.trim()) return;
     day(S.date).meals.push({ id:uid(), name:v.name.trim().slice(0,120), kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal });
-    save(S.date); render(); toast('הארוחה נוספה'); document.getElementById('m-name')?.focus();
+    save(S.date); render(); toast('נרשם. לפחות אתה כן.'); document.getElementById('m-name')?.focus();
   } else if (kind === 'work'){
     if (!n0(v.min)) return;
     day(S.date).workouts.push({ id:uid(), type:v.type, min:n0(v.min), km:n0(v.km), note:(v.note||'').trim().slice(0,120) });
-    save(S.date); render(); toast('האימון נוסף');
+    save(S.date); render(); toast('אימון נרשם. השלייקס מתרגשות.');
   } else if (kind === 'body'){
     const d = day(TODAY()); d.waist = nOrNull(v.waist); d.weight = nOrNull(v.weight);
     const st = S.settings; let touched = false;
     if (st.waistStart == null && d.waist != null){ st.waistStart = d.waist; touched = true; }
     if (st.weightStart == null && d.weight != null){ st.weightStart = d.weight; touched = true; }
-    save(TODAY()); if (touched) save('settings'); render(); toast('המדידה נשמרה');
+    save(TODAY()); if (touched) save('settings'); render(); toast('נמדד. ניצחון קטן לבית מעלקה.');
   } else if (kind === 'settings'){
     const st = S.settings;
     for (const k of Object.keys(DEFAULTS)){ const x = nOrNull(v[k]); st[k] = x == null ? (typeof DEFAULTS[k] === 'number' ? DEFAULTS[k] : null) : x; }

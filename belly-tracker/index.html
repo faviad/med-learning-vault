@@ -239,12 +239,13 @@ const pace = (min,km) => { if(!km||!min) return ''; const p=min/km; const m=Math
 const LS = 'belly-tracker-v1';
 function lsRead(){ try { return JSON.parse(localStorage.getItem(LS) || 'null'); } catch { return null; } }
 function lsWrite(){ try { localStorage.setItem(LS, JSON.stringify({settings:S.settings, days:S.days})); } catch {} }
-let col = null; const dirty = new Set(); let timer = null;
+let col = null; const dirty = new Set(), inflight = new Set(); let timer = null;
 function save(k){ dirty.add(k); lsWrite(); clearTimeout(timer); timer = setTimeout(flush, 500); }
 async function flush(){
   if (!col) return;
   const keys = [...dirty]; dirty.clear();
   for (const k of keys){
+    inflight.add(k);
     try {
       if (k === 'settings') await col.doc('settings').set({...S.settings});
       else {
@@ -252,7 +253,9 @@ async function flush(){
         const empty = !d || (!d.water && !d.tehillim && !d.tehillimShuk && !d.meals.length && !d.workouts.length && d.weight == null && d.waist == null);
         if (empty) await col.doc('d-'+k).delete(); else await col.doc('d-'+k).set(JSON.parse(JSON.stringify(d)));
       }
-    } catch(e){ S.note = 'השמירה לחשבון נכשלה, הנתונים נשמרו בדפדפן. נסה שוב בעוד רגע.'; renderStatus(); }
+      S.note = '';
+    } catch(e){ S.note = 'השמירה לחשבון נכשלה (' + (e && (e.code || e.message) || 'שגיאה') + '). הנתונים נשמרו בדפדפן.'; renderStatus(); }
+    finally { inflight.delete(k); }
   }
 }
 async function connect(){
@@ -275,12 +278,21 @@ async function connect(){
         if (d.id === 'settings') settings = {...DEFAULTS, ...v};
         else if (d.id.startsWith('d-')) days[d.id.slice(2)] = { water:0, meals:[], workouts:[], ...v }; });
       // keep local edits that have not been sent yet
-      dirty.forEach(k => { if (k !== 'settings' && S.days[k]) days[k] = S.days[k]; });
-      S.days = days; if (!dirty.has('settings')) S.settings = settings;
-      S.cloud = true; S.note = ''; lsWrite(); render();
+      [...dirty, ...inflight].forEach(k => { if (k !== 'settings' && S.days[k]) days[k] = S.days[k]; });
+      S.days = days; if (!dirty.has('settings') && !inflight.has('settings')) S.settings = settings;
+      S.cloud = true; lsWrite(); softRender();
     }, () => { S.note = 'אין חיבור לחשבון כרגע. הנתונים נשמרים בדפדפן.'; renderStatus(); });
   } catch {}
 }
+
+/* ---------- errors: show them instead of failing silently ---------- */
+const VERSION = 6;
+function showError(e){
+  const msg = (e && (e.message || e.code || e.reason)) || String(e);
+  S.note = 'תקלה: ' + msg; try { toast('משהו נתקע: ' + msg); } catch {} renderStatus();
+}
+window.addEventListener('error', e => showError(e.error || e.message));
+window.addEventListener('unhandledrejection', e => showError(e.reason));
 
 /* ---------- toast + undo ---------- */
 let undoFn = null, toastT = null;
@@ -300,7 +312,18 @@ const ICONS = {
 };
 const TABS = [['today','היום'],['train','אימונים'],['progress','התקדמות'],['settings','הגדרות']];
 
-function render(){
+// A render from incoming data must not wipe what is being typed.
+let pendingRender = false;
+function typing(){ const a = document.activeElement; return a && a.closest && a.closest('#view') && /INPUT|SELECT|TEXTAREA/.test(a.tagName); }
+function softRender(){ if (typing()) { pendingRender = true; return; } render(true); }
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender && !typing()){ pendingRender = false; render(true); } }, 0));
+function render(keep){
+  const kept = {};
+  if (keep) document.querySelectorAll('#view input[id], #view select[id]').forEach(el => { if (el.value) kept[el.id] = el.value; });
+  try { renderInner(); } catch(e){ showError(e); return; }
+  Object.entries(kept).forEach(([id,v]) => { const el = document.getElementById(id); if (el && !el.value) el.value = v; });
+}
+function renderInner(){
   $('#tabs').innerHTML = TABS.map(([v,l]) => `<button data-act="tab" data-v="${v}" class="${S.view===v?'on':''}" aria-current="${S.view===v?'page':'false'}">${ICONS[v]}<span>${l}</span></button>`).join('');
   const isToday = S.date === TODAY();
   const label = isToday ? 'היום' : S.date === addDays(TODAY(),-1) ? 'אתמול' : `${DOW_LONG[parseKey(S.date).getDay()]} ${fmtDate(S.date)}`;
@@ -312,7 +335,7 @@ function render(){
 }
 function renderStatus(){
   const el = document.getElementById('status'); if (!el) return;
-  el.textContent = S.note || (S.cloud ? 'נשמר בחשבון שלך, פרטי רק לך. זמין מכל מכשיר.' : 'נשמר בדפדפן הזה בלבד.');
+  el.textContent = (S.note || (S.cloud ? 'נשמר בחשבון שלך, פרטי רק לך. זמין מכל מכשיר.' : 'נשמר בדפדפן הזה בלבד.')) + ' · גרסה ' + VERSION;
 }
 
 function weekStrip(){
@@ -698,7 +721,8 @@ document.addEventListener('keydown', e => {
   const f = e.target.closest && e.target.closest('form[data-form]');
   if (f && e.target.tagName === 'INPUT'){ e.preventDefault(); handleForm(f); }
 });
-function handleForm(f){
+function handleForm(f){ try { handleFormInner(f); } catch(e){ showError(e); } }
+function handleFormInner(f){
   const v = Object.fromEntries(new FormData(f).entries()), kind = f.dataset.form;
   if (kind === 'meal'){
     if (!(v.name||'').trim()){ toast('כתוב מה אכלת. אפשר גם ללחוץ על אחד הקיצורים.'); document.getElementById('m-name')?.focus(); return; }

@@ -363,7 +363,8 @@ async function connect(){
       }
       firstSnap = false;
       const days = {}; let settings = {...DEFAULTS};
-      snap.docs.forEach(d => { const v = d.data() || {};
+      // store data comes back frozen: copy it so the app can change it
+      snap.docs.forEach(d => { const v = JSON.parse(JSON.stringify(d.data() || {}));
         if (d.id === 'settings') settings = {...DEFAULTS, ...v};
         else if (d.id.startsWith('d-')) days[d.id.slice(2)] = { water:0, meals:[], workouts:[], ...v }; });
       // keep local edits that have not been sent yet
@@ -566,7 +567,7 @@ function niggun(){
 function chime(){ const c = ac(); if (!c) return; const t = c.currentTime + 0.03; [62,66,69,74].forEach((m,i) => tone(c, t + i*0.12, 0.6, m, 'sine', 0.18)); }
 
 /* ---------- errors: show them instead of failing silently ---------- */
-const VERSION = 8;
+const VERSION = 9;
 function showError(e){
   const msg = (e && (e.message || e.code || e.reason)) || String(e);
   S.note = 'תקלה: ' + msg; try { toast('משהו נתקע: ' + msg); } catch {} renderStatus();

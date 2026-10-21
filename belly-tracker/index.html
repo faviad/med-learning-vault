@@ -2,23 +2,30 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Frank+Ruhl+Libre:wght@700;900&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: one phone column; a sticky date bar on top, a fixed tab bar at the bottom, sections stacked by what you log most often (water, food, training). The tape measure is the signature element. */
+/* Layout: velvet parochet header with a night shtetl skyline, then one phone column on a Jerusalem-stone wall of faint Hasidic motifs; velvet tab bar at the bottom. Signature moments: the pashkevil, the angry melamed, the dancing niggun. */
 :root{
-  --bg:#F3F5F2; --surface:#FFFFFF; --line:#DCE3DE; --ink:#15302A; --muted:#5E716B;
-  --tape:#E9B824; --tape-ink:#3A2E05; --water:#2C7BD0; --food:#D9822B; --move:#2E9D6A; --warn:#C8452F; --coat:#1E2228; --shirt:#FFFFFF; --skin:#F0C8A2; --beard:#6E4B2C; --strap:#B8352A;
+  --bg:#ECE9E3; --surface:#FDFCFA; --line:#DDD8CF; --ink:#1B1A22; --muted:#686270;
+  --tape:#E2B32E; --tape-ink:#3A2E05; --water:#2C7BD0; --food:#D2782A; --move:#2E9D6A; --warn:#C23A2C; --coat:#1E1D24; --shirt:#FFFFFF; --skin:#F0C8A2; --beard:#6E4B2C; --strap:#B8352A;
+  --velvet:#5A1426; --velvet-2:#3A0C18; --gold:#C9A23F; --on-velvet:#F4E7C6; --old-beard:#ECE9E4; --wood:#C8913F; --paper:#FFFEF9;
+  --shadow:0 1px 0 rgba(30,20,25,.04), 0 10px 26px -18px rgba(60,20,35,.45); --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' fill='none' stroke='%231B1A22' stroke-opacity='.07' stroke-width='1.4'%3E%3Cg transform='translate(14 22)'%3E%3Cellipse cx='16' cy='14' rx='16' ry='3'/%3E%3Cpath d='M6 14 L7 3 Q16 -1 25 3 L26 14'/%3E%3C/g%3E%3Cg transform='translate(84 12)'%3E%3Cpath d='M4 30 V12 M18 30 V12 M0 30 H8 M14 30 H22 M4 10 q-2.5 -4 0 -7 q2.5 3 0 7 M18 10 q-2.5 -4 0 -7 q2.5 3 0 7'/%3E%3C/g%3E%3Cg transform='translate(28 84)'%3E%3Crect width='22' height='28' rx='2'/%3E%3Cpath d='M4 0 V28 M9 9 H18'/%3E%3C/g%3E%3Cg transform='translate(96 86)'%3E%3Cpath d='M0 0 H20 L18 12 A8 8 0 0 1 2 12 Z M10 20 V26 M4 27 H16'/%3E%3C/g%3E%3Ccircle cx='70' cy='68' r='1.6'/%3E%3Ccircle cx='10' cy='122' r='1.6'/%3E%3Ccircle cx='126' cy='56' r='1.6'/%3E%3C/svg%3E");
+  --font-sefer:"Frank Ruhl Libre","David","Times New Roman",serif;
   --font-display:"Secular One","Rubik","Arial Hebrew",system-ui,sans-serif;
   --font-body:"IBM Plex Sans Hebrew","Segoe UI","Arial Hebrew",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
   --r:14px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
-  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3A4350; --shirt:#E9EEEB; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A; color-scheme:dark}}
+  --bg:#121117; --surface:#1C1B23; --line:#302D39; --ink:#ECE8E1; --muted:#A39EA9;
+  --tape:#E2B32E; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3C3A47; --shirt:#E9E6E0; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A;
+  --velvet:#4A1020; --velvet-2:#2C0812; --gold:#D9B65A; --on-velvet:#F4E7C6; --old-beard:#DAD5CC; --wood:#C8913F; --paper:#F3EFE6;
+  --shadow:0 10px 26px -18px rgba(0,0,0,.8); --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' fill='none' stroke='%23ECE8E1' stroke-opacity='.05' stroke-width='1.4'%3E%3Cg transform='translate(14 22)'%3E%3Cellipse cx='16' cy='14' rx='16' ry='3'/%3E%3Cpath d='M6 14 L7 3 Q16 -1 25 3 L26 14'/%3E%3C/g%3E%3Cg transform='translate(84 12)'%3E%3Cpath d='M4 30 V12 M18 30 V12 M0 30 H8 M14 30 H22 M4 10 q-2.5 -4 0 -7 q2.5 3 0 7 M18 10 q-2.5 -4 0 -7 q2.5 3 0 7'/%3E%3C/g%3E%3Cg transform='translate(28 84)'%3E%3Crect width='22' height='28' rx='2'/%3E%3Cpath d='M4 0 V28 M9 9 H18'/%3E%3C/g%3E%3Cg transform='translate(96 86)'%3E%3Cpath d='M0 0 H20 L18 12 A8 8 0 0 1 2 12 Z M10 20 V26 M4 27 H16'/%3E%3C/g%3E%3Ccircle cx='70' cy='68' r='1.6'/%3E%3Ccircle cx='10' cy='122' r='1.6'/%3E%3Ccircle cx='126' cy='56' r='1.6'/%3E%3C/svg%3E"); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E1916; --surface:#16241F; --line:#27392F; --ink:#E4EEE9; --muted:#93A8A0;
-  --tape:#E9B824; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3A4350; --shirt:#E9EEEB; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A; color-scheme:dark}
+  --bg:#121117; --surface:#1C1B23; --line:#302D39; --ink:#ECE8E1; --muted:#A39EA9;
+  --tape:#E2B32E; --tape-ink:#2A2104; --water:#5AA2EE; --food:#EBA057; --move:#4CC48D; --warn:#EF7A62; --coat:#3C3A47; --shirt:#E9E6E0; --skin:#E8BE98; --beard:#9A7350; --strap:#E0604A;
+  --velvet:#4A1020; --velvet-2:#2C0812; --gold:#D9B65A; --on-velvet:#F4E7C6; --old-beard:#DAD5CC; --wood:#C8913F; --paper:#F3EFE6;
+  --shadow:0 10px 26px -18px rgba(0,0,0,.8); --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' fill='none' stroke='%23ECE8E1' stroke-opacity='.05' stroke-width='1.4'%3E%3Cg transform='translate(14 22)'%3E%3Cellipse cx='16' cy='14' rx='16' ry='3'/%3E%3Cpath d='M6 14 L7 3 Q16 -1 25 3 L26 14'/%3E%3C/g%3E%3Cg transform='translate(84 12)'%3E%3Cpath d='M4 30 V12 M18 30 V12 M0 30 H8 M14 30 H22 M4 10 q-2.5 -4 0 -7 q2.5 3 0 7 M18 10 q-2.5 -4 0 -7 q2.5 3 0 7'/%3E%3C/g%3E%3Cg transform='translate(28 84)'%3E%3Crect width='22' height='28' rx='2'/%3E%3Cpath d='M4 0 V28 M9 9 H18'/%3E%3C/g%3E%3Cg transform='translate(96 86)'%3E%3Cpath d='M0 0 H20 L18 12 A8 8 0 0 1 2 12 Z M10 20 V26 M4 27 H16'/%3E%3C/g%3E%3Ccircle cx='70' cy='68' r='1.6'/%3E%3Ccircle cx='10' cy='122' r='1.6'/%3E%3Ccircle cx='126' cy='56' r='1.6'/%3E%3C/svg%3E"); color-scheme:dark}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--font-body);font-size:15px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
@@ -143,17 +150,98 @@ nav.tabs button.on svg{color:var(--tape)}
 .toast button{border:0;background:var(--tape);color:var(--tape-ink);border-radius:999px;padding:4px 12px;font-weight:600}
 .status{font-size:.78rem;color:var(--muted);margin-block:8px 0}
 @media (prefers-reduced-motion:no-preference){.ring circle.p{transition:stroke-dashoffset .4s ease}.meter i{transition:width .4s ease}}
+
+/* ---------- Hasidic dress ---------- */
+body{background:var(--pattern) 0 0/140px 140px, var(--bg)}
+.band{position:relative;color:var(--on-velvet);background:
+  radial-gradient(120% 90% at 70% 0%, color-mix(in srgb,var(--velvet) 70%,#fff 8%) 0%, var(--velvet) 55%, var(--velvet-2) 100%)}
+.band::after{content:"";position:absolute;inset:auto 0 0 0;height:7px;background:
+  repeating-linear-gradient(45deg,var(--gold) 0 3px,transparent 3px 7px),var(--velvet-2);opacity:.95}
+.band-in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.band h1{font-family:var(--font-sefer);font-weight:900;font-size:clamp(1.6rem,7.4vw,2.2rem);line-height:1.05;color:var(--gold);text-shadow:0 1px 0 rgba(0,0,0,.35);white-space:nowrap}
+.band .sub{display:block;font-size:.85rem;color:var(--on-velvet);opacity:.85;margin-top:4px}
+.band .bh{font-family:var(--font-sefer);font-size:.8rem;color:var(--gold);opacity:.8}
+.mute{border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);background:rgba(0,0,0,.18);color:var(--gold);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto}
+.mute svg{width:20px;height:20px}
+.skyline{display:block;width:100%;height:74px;margin-top:-6px}
+.datebar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;justify-content:center;padding-block:10px 6px}
+.datebar:empty{display:none}
+.datenav button{background:var(--surface);box-shadow:var(--shadow)}
+.panel{box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--line) 70%,transparent)}
+.sec-h h2{position:relative}
+.wd.sel{box-shadow:0 0 0 1.5px var(--gold);background:var(--surface)}
+.btn{background:var(--velvet);color:var(--on-velvet);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.chip.primary{box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+nav.tabs{background:linear-gradient(var(--velvet),var(--velvet-2));border-top:2px solid var(--gold)}
+nav.tabs button{color:color-mix(in srgb,var(--on-velvet) 70%,transparent)}
+nav.tabs button.on{color:var(--on-velvet)}
+nav.tabs button.on svg{color:var(--gold)}
+/* pashkevil: the street poster */
+.pashk{background:var(--paper);color:#151418;border:0;border-radius:2px;padding:0 12px 12px;position:relative;transform:rotate(-.6deg);box-shadow:0 2px 0 rgba(0,0,0,.05),0 14px 24px -16px rgba(0,0,0,.5);outline:3px solid #151418;outline-offset:-7px}
+.pashk::before,.pashk::after{content:"";position:absolute;top:-8px;width:56px;height:16px;background:color-mix(in srgb,var(--gold) 55%,transparent);opacity:.8}
+.pashk::before{right:14px;transform:rotate(4deg)} .pashk::after{left:14px;transform:rotate(-5deg)}
+.pashk .h{display:block;background:#151418;color:#FFFEF9;font-family:var(--font-sefer);font-weight:900;font-size:.95rem;letter-spacing:.02em;padding:4px 8px;margin:12px 0 6px}
+.pashk p{font-family:var(--font-sefer);font-weight:900;font-size:1.22rem;color:#151418}
+.pashk svg{align-self:flex-end;margin-top:12px}
+/* modal: melamed and niggun */
+.modal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(12,6,10,.6)}
+.sheet{width:min(100%,380px);background:var(--paper);color:#151418;border-radius:16px;padding:18px 18px 16px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);position:relative;overflow:hidden}
+.sheet h3{font-family:var(--font-sefer);font-weight:900;font-size:1.6rem;line-height:1.15;margin:6px 0 6px}
+.sheet p{margin:0 0 12px;font-size:1rem}
+.sheet .btn{width:100%}
+.sheet.angry{border:3px solid var(--warn)}
+.sheet.joy{background:radial-gradient(120% 80% at 50% 0%,#FFF4D6 0%,var(--paper) 60%);border:3px solid var(--gold)}
+.sheet .ill-wrap{display:flex;justify-content:center;height:190px;align-items:flex-end}
+.notes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.notes span{position:absolute;bottom:40%;font-size:1.5rem;color:var(--gold);opacity:0}
+.mini-ruler{display:inline-block;width:26px;height:8px;border-radius:2px;vertical-align:middle;margin-inline-start:6px;background:repeating-linear-gradient(90deg,#3a2a10 0 1px,transparent 1px 4px) bottom/100% 4px no-repeat,var(--wood)}
+@media (prefers-reduced-motion:no-preference){
+  .ruler{transform-box:view-box;transform-origin:132px 96px;animation:whack .62s cubic-bezier(.5,0,.6,1.4) infinite}
+  @keyframes whack{0%{transform:rotate(-38deg)}55%{transform:rotate(30deg)}62%{transform:rotate(22deg)}100%{transform:rotate(-38deg)}}
+  .sheet.angry{animation:shake .62s infinite}
+  @keyframes shake{0%,50%,100%{transform:translateX(0)}56%{transform:translateX(-5px) rotate(-.6deg)}62%{transform:translateX(4px)}}
+  .bang{animation:bang .62s infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes bang{0%,50%{opacity:0;transform:scale(.6)}58%{opacity:1;transform:scale(1.15)}80%{opacity:0}}
+  .dance{animation:dance .46s ease-in-out infinite alternate;transform-origin:50% 100%}
+  @keyframes dance{0%{transform:translateY(0) rotate(-7deg)}100%{transform:translateY(-14px) rotate(7deg)}}
+  .notes span{animation:float 2.4s linear infinite}
+  @keyframes float{0%{opacity:0;transform:translateY(0) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translateY(-170px) rotate(25deg)}}
+  .mini-ruler{animation:wig .5s ease-in-out infinite alternate;transform-origin:100% 50%}
+  @keyframes wig{from{transform:rotate(-14deg)}to{transform:rotate(10deg)}}
+}
 </style>
 
+<header class="band" dir="rtl" lang="he">
+  <div class="band-in">
+    <div class="brand"><span class="bh">בס״ד</span><h1>מעלקה בלי שלייקס</h1><span class="sub">מבצע הורדת השלייקס · אוכל · אימונים · מים</span></div>
+    <button class="mute" id="mute" data-act="mute" aria-label="צליל"></button>
+  </div>
+  <svg class="skyline" viewBox="0 0 400 74" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <circle cx="62" cy="18" r="9" fill="var(--gold)" opacity=".9"/><circle cx="66" cy="15" r="8" fill="var(--velvet)"/>
+    <g fill="var(--velvet-2)">
+      <path d="M0 74V46L20 33L40 46V74Z"/><path d="M44 74V40H78V74Z"/><path d="M44 40L61 28L78 40Z"/>
+      <path d="M150 74V40H206V74Z"/><path d="M150 40Q178 8 206 40Z"/><rect x="176.5" y="10" width="3" height="14"/>
+      <path d="M214 74V50L232 38L250 50V74Z"/><path d="M258 74V32H292V74Z"/><path d="M300 74V48L322 36L344 48V74Z"/><path d="M350 74V42H400V74Z"/>
+      <rect x="108.5" y="44" width="3" height="30"/>
+      <ellipse cx="128" cy="55" rx="6" ry="1.6"/><path d="M124 55L125 49Q128 48 131 49L132 55Z"/><circle cx="128" cy="58" r="3"/><path d="M123 61H133L136 74H120Z"/>
+      <path d="M89 74V58L98 52L107 58V74Z"/>
+    </g>
+    <g fill="var(--gold)" opacity=".85">
+      <rect x="10" y="52" width="5" height="7" rx="1"/><rect x="25" y="52" width="5" height="7" rx="1"/><rect x="52" y="48" width="6" height="8" rx="1"/>
+      <path d="M160 74V60a5 5 0 0 1 10 0V74Z" opacity=".7"/><path d="M174 58a4 4 0 0 1 8 0v10h-8Z"/><path d="M186 58a4 4 0 0 1 8 0v10h-8Z"/>
+      <rect x="266" y="40" width="6" height="8" rx="1"/><rect x="278" y="40" width="6" height="8" rx="1"/><rect x="266" y="56" width="6" height="8" rx="1" opacity=".6"/>
+      <rect x="315" y="54" width="6" height="8" rx="1"/><rect x="362" y="50" width="6" height="8" rx="1"/><rect x="380" y="50" width="6" height="8" rx="1" opacity=".5"/>
+      <circle cx="110" cy="43" r="4"/><circle cx="110" cy="43" r="10" opacity=".18"/>
+    </g>
+  </svg>
+</header>
 <div id="app" dir="rtl" lang="he">
-  <header class="top">
-    <div class="brand"><h1><svg viewBox="0 0 40 30" aria-hidden="true"><ellipse cx="20" cy="24" rx="19" ry="4" fill="var(--coat)"/><path d="M8 24 L9.5 7 Q20 2 30.5 7 L32 24Z" fill="var(--coat)"/><rect x="9" y="18" width="22" height="3" fill="var(--muted)" opacity=".5"/></svg>מעלקה בלי שלייקס</h1><span class="small muted" id="sub">מבצע הורדת השלייקס · אוכל · אימונים · מים</span></div>
-    <div class="datenav" id="datenav"></div>
-  </header>
+  <div class="datebar"><div class="datenav" id="datenav"></div></div>
   <main id="view"><p class="muted">טוען…</p></main>
 </div>
 <nav class="tabs" dir="rtl" aria-label="ניווט"><div class="in" id="tabs"></div></nav>
 <div class="toast" id="toast" hidden></div>
+<div class="modal" id="modal" dir="rtl" lang="he" hidden></div>
 
 <script>
 (() => {
@@ -338,9 +426,11 @@ What he ate: ${JSON.stringify(text)}`, { modelTier:'quick' });
     const m = find(); if (!m) return;
     const items = Array.isArray(r?.items) ? r.items.slice(0,10).map(i => ({ n:String(i?.name ?? '').slice(0,50), k:Math.round(n0(i?.kcal)) })) : [];
     const total = Math.round(n0(r?.kcal) || items.reduce((a,i) => a + i.k, 0));
+    const beforeAi = sums(k).kcal - n0(m.kcal) ;
     m.kcal = total; if (autoProtein) m.protein = Math.round(n0(r?.protein)); m.est = 'ai';
     if (items.length) m.items = items;
     save(k); render(true);
+    if (!scolded.has(id) && k === S.date) afterMeal(k, beforeAi, id);
     const quip = String(r?.quip ?? '').slice(0,140);
     toast(`~${fmt(total)} קק״ל${quip ? ' · ' + quip : ''}`);
   } catch(e){
@@ -354,8 +444,129 @@ function saveK(id){
   S.editing = null; render(true);
 }
 
+/* ---------- the melamed, the niggun, and their sounds ---------- */
+const ICON_SOUND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const ICON_MUTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+try { S.muted = localStorage.getItem('belly-muted') === '1'; } catch { S.muted = false; }
+const scolded = new Set();
+function melamedSvg(){
+  return `<svg viewBox="0 0 170 190" width="170" height="190" role="img" aria-label="מלמד כועס עם סרגל">
+  <path d="M38 190 Q42 128 82 118 Q122 128 126 190Z" fill="var(--coat)"/>
+  <path d="M82 118 L74 190 M82 118 L90 190" stroke="var(--shirt)" stroke-width="3" opacity=".25"/>
+  <path d="M52 128 Q34 118 26 102" stroke="var(--coat)" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <circle cx="25" cy="99" r="6.5" fill="var(--skin)"/><path d="M24 93 L20 80" stroke="var(--skin)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M112 128 Q126 112 132 98" stroke="var(--coat)" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <g class="ruler"><rect x="127" y="14" width="10" height="84" rx="2" fill="var(--wood)" stroke="#6b4a1c" stroke-width="1"/>
+    <path d="M127 24h4M127 32h6M127 40h4M127 48h6M127 56h4M127 64h6M127 72h4M127 80h6M127 88h4" stroke="#4a3412" stroke-width="1"/></g>
+  <circle cx="132" cy="96" r="7" fill="var(--skin)"/>
+  <g class="bang"><path d="M150 18 l4 8 l8 -2 l-5 7 l7 5 l-9 1 l1 9 l-6 -6 l-6 6 l1 -9 l-9 -1 l7 -5 l-5 -7 l8 2Z" fill="var(--tape)" stroke="var(--warn)" stroke-width="1.5"/></g>
+  <circle cx="82" cy="74" r="22" fill="var(--skin)"/>
+  <path d="M59 76 Q56 124 82 138 Q108 124 105 76 Q96 92 82 92 Q68 92 59 76Z" fill="var(--old-beard)" stroke="#bdb7ad" stroke-width="1"/>
+  <path d="M62 82 q-6 10 -2 20 M102 82 q6 10 2 20" stroke="#bdb7ad" stroke-width="1" fill="none"/>
+  <ellipse cx="82" cy="99" rx="6" ry="5" fill="#5a1620"/>
+  <path d="M69 92 Q82 84 95 92 Q82 95 69 92Z" fill="var(--old-beard)" stroke="#bdb7ad" stroke-width="1"/>
+  <path d="M63 60 L77 66 M101 60 L87 66" stroke="var(--old-beard)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M63 60 L77 66 M101 60 L87 66" stroke="#9c958a" stroke-width="1"/>
+  <circle cx="72" cy="72" r="6.5" fill="none" stroke="var(--coat)" stroke-width="1.6"/><circle cx="92" cy="72" r="6.5" fill="none" stroke="var(--coat)" stroke-width="1.6"/>
+  <path d="M78.5 72h7" stroke="var(--coat)" stroke-width="1.6"/><circle cx="73" cy="73" r="1.8" fill="var(--coat)"/><circle cx="91" cy="73" r="1.8" fill="var(--coat)"/>
+  <ellipse cx="82" cy="54" rx="34" ry="6" fill="var(--coat)"/><path d="M57 54 L59 28 Q82 19 105 28 L107 54Z" fill="var(--coat)"/>
+  <rect x="58" y="46" width="48" height="3.5" fill="var(--muted)" opacity=".4"/>
+  </svg>`;
+}
+const SCOLD = [
+  'נו, מעלקה! עוד קיגל?! השלייקס בוכות!',
+  'וואס טוסטו?! יעד הקלוריות זה לא הצעה, זו הלכה!',
+  'בחדר שלי לא היו נשנושים! לשבת זקוף!',
+  'אכלת כמו בשבע ברכות, ולא הייתה שום חתונה!',
+  'פתח ספר, סגור את המקרר!',
+  'גם רש״י לא היה מוצא היתר לצלחת הזאת!'
+];
+const JOY = [
+  'מעלקה רוקד! השלייקס מתחילות לארוז מזוודה.',
+  'זה לא שמחת תורה, ובכל זאת אתה רוקד!',
+  'הכרס בשוק. היא לא תכננה את זה.',
+  'בשטיבל כבר מספרים: מעלקה עשה ספורט!',
+  'עוד כמה כאלה והגארטל ייסגר בלי מאמץ.'
+];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+let modalTimer = null;
+function openModal(html){ const m = $('#modal'); m.innerHTML = html; m.hidden = false; setTimeout(() => m.querySelector('.btn')?.focus(), 50); }
+function closeModal(){ const m = $('#modal'); m.hidden = true; m.innerHTML = ''; clearTimeout(modalTimer); stopAudio(); }
+document.addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+function afterMeal(k, before, id){
+  const goal = S.settings.kcalGoal, now = sums(k).kcal;
+  if (now <= goal) return;
+  scolded.add(id);
+  openModal(`<div class="sheet angry" role="alertdialog" aria-label="המלמד כועס">
+    <div class="ill-wrap">${melamedSvg()}</div>
+    <h3>${esc(pick(SCOLD))}</h3>
+    <p>${before <= goal ? 'עברת את יעד הקלוריות של היום' : 'כבר היית מעל היעד, ועוד הוספת'} · חריגה של <b class="num">${fmt(now - goal)}</b> קק״ל</p>
+    <button class="btn" data-act="closemodal">סליחה, רבי. לא אחזור על זה</button></div>`);
+  whack();
+}
+function celebrate(){
+  const notes = Array.from({length:9}, (_,i) => `<span style="right:${8 + i*10}%;animation-delay:${(i*0.27).toFixed(2)}s">${i%2?'♫':'♪'}</span>`).join('');
+  openModal(`<div class="sheet joy" role="dialog" aria-label="ניגון התלהבות">
+    <div class="notes" aria-hidden="true">${notes}</div>
+    <div class="ill-wrap"><div class="dance">${melke(Math.max(progressP(), 0.35), 120)}</div></div>
+    <h3>ניגון התלהבות!</h3>
+    <p>${esc(pick(JOY))}</p>
+    <button class="btn" data-act="closemodal">אמן! ממשיכים</button></div>`);
+  niggun();
+  modalTimer = setTimeout(closeModal, 11000);
+}
+
+let AC = null, live = [];
+function ac(){
+  if (S.muted) return null;
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; } catch { return null; }
+}
+function stopAudio(){ live.forEach(n => { try { n.stop(); } catch {} }); live = []; }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function noise(c, t, dur, freq, vol){
+  const b = c.createBuffer(1, Math.ceil(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2 - 1) * Math.pow(1 - i/d.length, 3);
+  const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  src.buffer = b; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.9; g.gain.value = vol;
+  src.connect(f).connect(g).connect(c.destination); src.start(t); live.push(src);
+}
+function tone(c, t, dur, midi, type, vol, slide){
+  const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+  o.type = type; const fr = hz(midi);
+  if (slide){ o.frequency.setValueAtTime(fr * 0.94, t); o.frequency.linearRampToValueAtTime(fr, t + 0.06); } else o.frequency.setValueAtTime(fr, t);
+  f.type = 'lowpass'; f.frequency.value = type === 'square' ? 2300 : 5000;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(vol * 0.55, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  if (type === 'square'){ const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = 5.6; lg.gain.value = fr * 0.006; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur); live.push(l); }
+  o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02); live.push(o);
+}
+// three smacks of the ruler, in time with the drawing
+function whack(){
+  const c = ac(); if (!c) return; stopAudio(); const t0 = c.currentTime + 0.05;
+  for (let i = 0; i < 3; i++){ const t = t0 + 0.34 + i * 0.62; noise(c, t, 0.09, 1900, 0.9); noise(c, t, 0.05, 420, 0.5); }
+  tone(c, t0, 0.35, 45, 'sawtooth', 0.08); tone(c, t0 + 0.62*3, 0.4, 43, 'sawtooth', 0.07);
+}
+// a freygish niggun (D Ahava Rabba) that speeds up the second time round, with oom-pah and claps
+function niggun(){
+  const c = ac(); if (!c) return; stopAudio();
+  const A = [69,69,70,69,67,66,67,69, 70,72,74,72,70,69,67,69], B = [74,74,72,70,72,70,69,67, 66,67,69,70,69,67,66,62];
+  let t = c.currentTime + 0.08, step = 0.19;
+  [[A,1],[B,1],[A,0.8],[B,0.8]].forEach(([ph, k], pi) => {
+    const st = step * k;
+    ph.forEach((m, i) => {
+      const last = pi === 3 && i === ph.length - 1, dur = last ? 1.1 : st * 0.95;
+      tone(c, t, dur, m, 'square', 0.11, i === 0 || (i === 8 && Math.random() < 0.6));
+      if (i % 2 === 0){ tone(c, t, st * 0.9, (i/2) % 2 ? 57 : 50, 'triangle', 0.22); }
+      else { [62,66,69].forEach(n => tone(c, t, st * 0.5, n, 'triangle', 0.035)); }
+      if (i % 4 === 2) noise(c, t, 0.07, 1400, 0.35);
+      t += st;
+    });
+  });
+}
+function chime(){ const c = ac(); if (!c) return; const t = c.currentTime + 0.03; [62,66,69,74].forEach((m,i) => tone(c, t + i*0.12, 0.6, m, 'sine', 0.18)); }
+
 /* ---------- errors: show them instead of failing silently ---------- */
-const VERSION = 7;
+const VERSION = 8;
 function showError(e){
   const msg = (e && (e.message || e.code || e.reason)) || String(e);
   S.note = 'תקלה: ' + msg; try { toast('משהו נתקע: ' + msg); } catch {} renderStatus();
@@ -398,6 +609,8 @@ function renderInner(){
   const label = isToday ? 'היום' : S.date === addDays(TODAY(),-1) ? 'אתמול' : `${DOW_LONG[parseKey(S.date).getDay()]} ${fmtDate(S.date)}`;
   $('#datenav').innerHTML = (S.view==='today'||S.view==='train') ?
     `<button data-act="prev" aria-label="יום קודם">›</button><span class="datelabel">${label}</span><button data-act="next" aria-label="יום הבא" ${isToday?'disabled':''}>‹</button>` : '';
+  $('.datebar').hidden = !(S.view==='today'||S.view==='train');
+  $('#mute').innerHTML = S.muted ? ICON_MUTE : ICON_SOUND; $('#mute').setAttribute('aria-label', S.muted ? 'הפעל צליל' : 'השתק');
   const v = { today:viewToday, train:viewTrain, progress:viewProgress, settings:viewSettings }[S.view]();
   $('#view').innerHTML = v;
   renderStatus();
@@ -444,7 +657,7 @@ function viewToday(){
   </section>
 
   <section>
-    <div class="sec-h"><h2 class="hi">${ILL.pot}אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span> · עוד קיגל?</span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
+    <div class="sec-h"><h2 class="hi">${ILL.pot}אוכל</h2><span class="small muted">${over?`<span class="pill bad">חריגה של <span class="num">${fmt(s.kcal-st.kcalGoal)}</span> · עוד קיגל?<span class="mini-ruler" aria-hidden="true"></span></span>`:`נשארו <span class="num">${fmt(st.kcalGoal-s.kcal)}</span> קק״ל`}</span></div>
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="v">${fmt(s.kcal)} <span class="small muted">/ ${fmt(st.kcalGoal)}</span></div><div class="k">קלוריות</div>
@@ -764,7 +977,10 @@ document.addEventListener('click', e => {
   else if (a === 'prev'){ S.date = addDays(S.date,-1); render(); }
   else if (a === 'next'){ if (S.date < TODAY()) { S.date = addDays(S.date,1); render(); } }
   else if (a === 'go'){ S.date = b.dataset.k; render(); }
-  else if (a === 'water'){ const d = day(S.date); d.water = Math.max(0, (d.water||0) + Number(b.dataset.ml)); save(S.date); render(); }
+  else if (a === 'water'){ const d = day(S.date), was = d.water||0; d.water = Math.max(0, was + Number(b.dataset.ml)); save(S.date); render();
+    if (was < S.settings.waterGoal && d.water >= S.settings.waterGoal){ chime(); toast('לחיים! (במים.) יעד המים הושג.'); } }
+  else if (a === 'mute'){ S.muted = !S.muted; try { localStorage.setItem('belly-muted', S.muted ? '1' : ''); } catch {} if (S.muted) stopAudio(); render(true); }
+  else if (a === 'closemodal'){ closeModal(); }
   else if (a === 'teh'){
     const d = day(S.date), n = Number(b.dataset.n), f = b.dataset.shuk ? 'tehillimShuk' : 'tehillim';
     if (n < 0){ if (d.tehillim) d.tehillim--; else if (d.tehillimShuk) d.tehillimShuk--; }
@@ -780,7 +996,8 @@ document.addEventListener('click', e => {
   else if (a === 'requick'){
     const m = quickList()[Number(b.dataset.i)]; if (!m) return;
     const meal = m.meal || document.getElementById('m-meal')?.value || 's';
-    day(S.date).meals.push({ id:uid(), name:m.name, kcal:m.kcal, protein:m.protein, meal }); save(S.date); render();
+    const before = sums(S.date).kcal, nid = uid();
+    day(S.date).meals.push({ id:nid, name:m.name, kcal:m.kcal, protein:m.protein, meal }); save(S.date); render(); afterMeal(S.date, before, nid);
     toast(`נוסף: ${m.name}`);
   }
   else if (a === 'submit'){ const f = b.closest('form[data-form]'); if (f) handleForm(f); }
@@ -804,13 +1021,14 @@ function handleFormInner(f){
     const name = v.name.trim().slice(0,200), auto = String(v.kcal ?? '').trim() === '', autoP = String(v.protein ?? '').trim() === '';
     const meal = { id:uid(), name, kcal:n0(v.kcal), protein:n0(v.protein), meal:v.meal };
     if (auto){ const loc = localEstimate(name); meal.kcal = loc.kcal; if (autoP) meal.protein = loc.protein; meal.est = 'pending'; }
+    const before = sums(S.date).kcal;
     day(S.date).meals.push(meal);
-    save(S.date); render(); toast(auto ? 'נרשם. מחשב קלוריות…' : 'נרשם. לפחות אתה כן.');
+    save(S.date); render(); afterMeal(S.date, before, meal.id); toast(auto ? 'נרשם. מחשב קלוריות…' : 'נרשם. לפחות אתה כן.');
     if (auto) estimateMeal(S.date, meal.id, name, autoP);
   } else if (kind === 'work'){
     if (!n0(v.min)){ toast('כמה דקות? בלי דקות אין אימון.'); document.getElementById('w-min')?.focus(); return; }
     day(S.date).workouts.push({ id:uid(), type:v.type, min:n0(v.min), km:n0(v.km), note:(v.note||'').trim().slice(0,120) });
-    save(S.date); render(); toast('אימון נרשם. השלייקס מתרגשות.');
+    save(S.date); render(); celebrate();
   } else if (kind === 'body'){
     const d = day(TODAY()); d.waist = nOrNull(v.waist); d.weight = nOrNull(v.weight);
     const st = S.settings; let touched = false;
